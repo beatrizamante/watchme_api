@@ -33,6 +33,24 @@ export function peopleApiRoutes(fastify: FastifyInstance) {
     personController.find
   );
 
+  fastify.get(
+    "/people",
+    {
+      schema: {
+        summary: "Find a specific person in video",
+        tags: ["People"],
+        querystring: {
+          type: "object",
+          properties: {
+            id: { type: "number" },
+            videoId: { type: "number" },
+          },
+        },
+      },
+    },
+    personController.findInVideo
+  );
+
   fastify.post(
     "/people",
     {
