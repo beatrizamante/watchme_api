@@ -3,7 +3,6 @@ import {
   UnauthorizedError,
 } from "../../domain/applicationErrors.ts";
 import { UserModel } from "../../infrastructure/database/models/UserModel.ts";
-import { Roles } from "../../interfaces/roles.ts";
 
 type FindUser = {
   id?: number;
@@ -15,7 +14,7 @@ type FindUser = {
 export const findUser = async ({ id, username, email, user_id }: FindUser) => {
   const user = await UserModel.query().findById(user_id);
 
-  if (!user || (!user.isAdmin() && user_id !== user.id))
+  if (!user || (!user.isAdmin() && !user.isUser(user_id)))
     throw new UnauthorizedError({
       message: "User cannot access this resource",
     });

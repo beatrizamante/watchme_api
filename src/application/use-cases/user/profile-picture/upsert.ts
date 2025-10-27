@@ -3,12 +3,12 @@ import {
   InvalidProfilePictureError,
 } from "../../../../domain/applicationErrors.ts";
 import { ProfilePicture } from "../../../../domain/ProfilePicture.ts";
-import { ProfileIPictureInterface } from "../../../../domain/ProfilePictureRepository.ts";
+import { ProfilePictureInterface } from "../../../../domain/ProfilePictureRepository.ts";
 import { ProfilePictureModel } from "../../../../infrastructure/database/models/ProfilePictureModel.ts";
 import { managePath } from "../../../_lib/managePath.ts";
 
 type Dependencies = {
-  profilePictureRepository: ProfileIPictureInterface;
+  profilePictureRepository: ProfilePictureInterface;
 };
 
 type UpsertProfilePictureParams = {

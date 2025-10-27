@@ -1,5 +1,5 @@
 import { InvalidUserError } from "../../../domain/applicationErrors.ts";
-import { ProfileIPictureInterface } from "../../../domain/ProfilePictureRepository.ts";
+import { ProfilePictureInterface } from "../../../domain/ProfilePictureRepository.ts";
 import { User } from "../../../domain/User.ts";
 import { UserInterface } from "../../../domain/UserRepository.ts";
 import { UserModel } from "../../../infrastructure/database/models/UserModel.ts";
@@ -7,7 +7,7 @@ import { UpsertPicture } from "./profile-picture/upsert.ts";
 
 type Dependencies = {
   userRepository: UserInterface;
-  profilePictureRepository: ProfileIPictureInterface;
+  profilePictureRepository: ProfilePictureInterface;
   upsertPicture: UpsertPicture;
 };
 

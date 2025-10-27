@@ -12,7 +12,7 @@ export class ProfilePicture {
   public readonly path: string;
 
   constructor(profilePicture: CreateProfilePictureDTO) {
-    this.id = profilePicture.id || 0;
+    this.id = profilePicture.id;
 
     if (!profilePicture.user_id)
       throw new InvalidProfilePictureError({

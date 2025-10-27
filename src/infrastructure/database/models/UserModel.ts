@@ -80,8 +80,8 @@ class UserModel extends BaseModel {
     return this.role === Roles.ADMIN;
   }
 
-  isUser() {
-    return this.role === Roles.USER;
+  isUser(id: number) {
+    return this.id === id;
   }
 
   isActive() {

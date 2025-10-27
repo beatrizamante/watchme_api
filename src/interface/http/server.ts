@@ -1,5 +1,6 @@
 import fastifyCookie from "@fastify/cookie";
 import cors from "@fastify/cors";
+import multipart from "@fastify/multipart";
 import swagger from "@fastify/swagger";
 import swaggerUi from "@fastify/swagger-ui";
 import Fastify from "fastify";
@@ -20,6 +21,11 @@ const makeServer = async () => {
   });
 
   server.register(fastifyCookie);
+  server.register(multipart, {
+    limits: {
+      fileSize: 10 * 1024 * 1024,
+    },
+  });
   server.register(errorPlugin);
 
   server.register(swagger, {
@@ -42,10 +48,6 @@ const makeServer = async () => {
   });
 
   server.register(swaggerUi, { routePrefix: "/docs" });
-
-  server.get("/docs-redirect", async (_request, reply) => {
-    return reply.redirect("/docs", 301);
-  });
 
   server.register(authRoute);
   server.register(peopleApiRoutes);

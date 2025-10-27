@@ -1,5 +1,6 @@
 import { Roles } from "../interfaces/roles.ts";
 import { InvalidUserError } from "./applicationErrors.ts";
+import { ProfilePicture } from "./ProfilePicture.ts";
 
 type CreateUserDTO = {
   id?: number;
@@ -8,6 +9,7 @@ type CreateUserDTO = {
   password: string;
   role: Roles;
   active: boolean;
+  ProfilePicture?: ProfilePicture;
 };
 
 export class User {
@@ -17,8 +19,11 @@ export class User {
   public readonly password: string;
   public readonly role: Roles;
   public readonly active: boolean;
+  public readonly profilePicture?: ProfilePicture;
 
   constructor(user: CreateUserDTO) {
+    this.id = user.id;
+
     if (!user.username)
       throw new InvalidUserError({ message: "User needs an username " });
     this.username = user.username;
@@ -45,5 +50,7 @@ export class User {
     if (typeof user.active !== "boolean")
       throw new InvalidUserError({ message: "User must have a status" });
     this.active = user.active;
+
+    this.profilePicture = user.ProfilePicture;
   }
 }

@@ -1,6 +1,6 @@
 import { asClass, asFunction, createContainer } from "awilix";
 import { PersonInterface } from "../../domain/PersonRepository.ts";
-import { ProfileIPictureInterface } from "../../domain/ProfilePictureRepository.ts";
+import { ProfilePictureInterface } from "../../domain/ProfilePictureRepository.ts";
 import { UserInterface } from "../../domain/UserRepository.ts";
 import { VideoInterface } from "../../domain/VideoRepository.ts";
 import { PersonRepository } from "../../infrastructure/database/repositories/PersonRepository.ts";
@@ -34,7 +34,7 @@ export type Container = {
   videoRepository: VideoInterface;
   personRepository: PersonInterface;
   userRepository: UserInterface;
-  profilePictureRepository: ProfileIPictureInterface;
+  profilePictureRepository: ProfilePictureInterface;
 };
 
 const awilixContainer = createContainer<Container>();

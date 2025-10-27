@@ -1,10 +1,10 @@
 import { Transaction } from "objection";
 import { DatabaseError } from "../../../domain/applicationErrors.ts";
 import { ProfilePicture } from "../../../domain/ProfilePicture.ts";
-import { ProfileIPictureInterface } from "../../../domain/ProfilePictureRepository.ts";
+import { ProfilePictureInterface } from "../../../domain/ProfilePictureRepository.ts";
 import { ProfilePictureModel } from "../models/ProfilePictureModel.ts";
 
-export class ProfilePictureRepository implements ProfileIPictureInterface {
+export class ProfilePictureRepository implements ProfilePictureInterface {
   async findByUserId(user_id: number): Promise<ProfilePicture | undefined> {
     try {
       const profilePicture = await ProfilePictureModel.query()

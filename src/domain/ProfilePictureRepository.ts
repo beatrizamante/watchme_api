@@ -2,7 +2,7 @@ import { Transaction } from "objection";
 import { ProfilePictureModel } from "../infrastructure/database/models/ProfilePictureModel.ts";
 import { ProfilePicture } from "./ProfilePicture.ts";
 
-export interface ProfileIPictureInterface {
+export interface ProfilePictureInterface {
   findByUserId: (user_id: number) => Promise<ProfilePicture | undefined>;
   upsert: (
     profilePicture: ProfilePicture,

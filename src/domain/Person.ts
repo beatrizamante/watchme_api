@@ -14,7 +14,7 @@ export class Person {
   public readonly embedding: Buffer;
 
   constructor(person: CreatePersonDTO) {
-    this.id = person.id || 0;
+    this.id = person.id;
 
     if (!person.user_id)
       throw new InvalidPersonError({
