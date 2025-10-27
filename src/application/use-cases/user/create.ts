@@ -12,11 +12,12 @@ type Dependencies = {
 type CreateUserParams = {
   user: User;
   file?: Buffer;
+  originalFilename?: string;
 };
 
 export const makeCreateUser =
   ({ upsertPicture, userRepository }: Dependencies) =>
-  async ({ user, file }: CreateUserParams) => {
+  async ({ user, file, originalFilename }: CreateUserParams) => {
     const trx = await UserModel.startTransaction();
 
     try {
@@ -32,6 +33,7 @@ export const makeCreateUser =
         validPicture = await upsertPicture({
           file,
           user_id: newUser.id,
+          originalFilename,
         });
       }
 

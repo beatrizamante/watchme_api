@@ -9,13 +9,21 @@ const __dirname = path.dirname(__filename);
 const uploadDir = path.join(__dirname, "../../../", "uploads");
 
 export const managePath = {
-  save: async (file: Buffer, filename: string): Promise<string> => {
+  save: async (
+    file: Buffer,
+    filename: string,
+    originalExtension?: string
+  ): Promise<string> => {
     try {
       if (!fs.existsSync(uploadDir)) {
         await fs.promises.mkdir(uploadDir, { recursive: true });
       }
 
-      const filePath = path.join(uploadDir, filename);
+      const finalFilename = originalExtension
+        ? `${filename}.${originalExtension}`
+        : filename;
+
+      const filePath = path.join(uploadDir, finalFilename);
       await fs.promises.writeFile(filePath, file);
       return filePath;
     } catch (error) {

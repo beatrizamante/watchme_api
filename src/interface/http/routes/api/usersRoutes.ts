@@ -23,7 +23,6 @@ export function usersApiRoutes(fastify: FastifyInstance) {
         summary: "Find a specific user",
         tags: ["Users"],
         querystring: {
-          type: "object",
           properties: {
             id: { type: "number" },
             username: { type: "string" },
@@ -33,6 +32,22 @@ export function usersApiRoutes(fastify: FastifyInstance) {
       },
     },
     userController.find
+  );
+
+  fastify.delete(
+    "/user/picture",
+    {
+      schema: {
+        summary: "Delete the picture of a user",
+        tags: ["Users"],
+        querystring: {
+          properties: {
+            id: { type: "number" },
+          },
+        },
+      },
+    },
+    userController.delete
   );
 
   fastify.post(

@@ -1,5 +1,4 @@
 import { InvalidProfilePictureError } from "../../../../domain/applicationErrors.ts";
-import { ProfilePicture } from "../../../../domain/ProfilePicture.ts";
 import { ProfilePictureInterface } from "../../../../domain/ProfilePictureRepository.ts";
 import { ProfilePictureModel } from "../../../../infrastructure/database/models/ProfilePictureModel.ts";
 import { managePath } from "../../../_lib/managePath.ts";
@@ -9,15 +8,22 @@ type Dependencies = {
 };
 
 type DeleteProfilePictureParams = {
-  profilePicture: ProfilePicture;
+  id: number;
 };
 
 export const makeDeletePicture =
   ({ profilePictureRepository }: Dependencies) =>
-  async ({ profilePicture }: DeleteProfilePictureParams) => {
+  async ({ id }: DeleteProfilePictureParams) => {
     const trx = await ProfilePictureModel.startTransaction();
 
     try {
+      const profilePicture = await profilePictureRepository.findByUserId(id);
+
+      if (!profilePicture)
+        throw new InvalidProfilePictureError({
+          message: "Couldn't find profile picture to delete",
+        });
+
       const isDeleted = profilePictureRepository.delete(profilePicture, trx);
 
       await managePath.delete(profilePicture.path);

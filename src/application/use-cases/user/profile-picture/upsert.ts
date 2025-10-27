@@ -14,18 +14,29 @@ type Dependencies = {
 type UpsertProfilePictureParams = {
   file: Buffer;
   user_id: number;
+  originalFilename?: string;
   currentPicture?: ProfilePicture;
 };
 
 export const makeUpsertPicture =
   ({ profilePictureRepository }: Dependencies) =>
-  async ({ file, user_id, currentPicture }: UpsertProfilePictureParams) => {
+  async ({
+    file,
+    user_id,
+    originalFilename,
+    currentPicture,
+  }: UpsertProfilePictureParams) => {
     const trx = await ProfilePictureModel.startTransaction();
     let validPicture: ProfilePicture;
 
     try {
       const filename = crypto.randomUUID();
-      const validPath = await managePath.save(file, filename);
+
+      const extension = originalFilename
+        ? originalFilename.split(".").pop()?.toLowerCase()
+        : undefined;
+
+      const validPath = await managePath.save(file, filename, extension);
 
       if (!validPath)
         throw new ExternalServiceError({

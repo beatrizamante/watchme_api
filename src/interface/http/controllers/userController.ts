@@ -1,6 +1,5 @@
 import { FastifyReply, FastifyRequest } from "fastify";
 import z from "zod/v4";
-import { findUser } from "../../../application/queries/findUser";
 import { findUser } from "../../../application/queries/findUser.ts";
 import { findUsers } from "../../../application/queries/findUsers.ts";
 import { Roles } from "../../../interfaces/roles.ts";
@@ -11,11 +10,13 @@ export const userController = {
     try {
       const parts = request.parts();
       let file: Buffer | undefined;
+      let originalFilename: string | undefined;
       const bodyData: Record<string, unknown> = {};
 
       for await (const part of parts) {
         if (part.type === "file") {
           file = await part.toBuffer();
+          originalFilename = part.filename;
         } else {
           bodyData[part.fieldname] = part.value;
         }
@@ -42,6 +43,7 @@ export const userController = {
           active: true,
         },
         file: file || Buffer.from(""),
+        originalFilename,
       });
 
       return reply.status(201).send(result);
@@ -60,11 +62,13 @@ export const userController = {
 
       const parts = request.parts();
       let file: Buffer | undefined;
+      let originalFilename: string | undefined;
       const bodyData: Record<string, unknown> = {};
 
       for await (const part of parts) {
         if (part.type === "file") {
           file = await part.toBuffer();
+          originalFilename = part.filename;
         } else {
           if (part.value && part.value.toString().trim() !== "") {
             bodyData[part.fieldname] = part.value;
@@ -73,7 +77,7 @@ export const userController = {
       }
 
       const parseResult = UpdateUserInput.safeParse(bodyData);
-      const { updateUser } = createRequestScopedContainer(request);
+      const { updateUser } = createRequestScopedContainer();
 
       if (!parseResult.success) {
         return reply.status(400).send({
@@ -101,6 +105,7 @@ export const userController = {
       const result = await updateUser({
         user: mergedUserData,
         file,
+        originalFilename,
       });
 
       return reply.status(200).send(result);
@@ -127,8 +132,9 @@ export const userController = {
 
     const { deletePicture } = createRequestScopedContainer();
 
-    const user = await findUser({ id: parseResult.data.id, user_id: userId });
-    const result = await deletePicture(user);
+    const result = await deletePicture({ id: userId });
+
+    return reply.status(201).send(result);
   },
 
   list: async (request: FastifyRequest, reply: FastifyReply) => {
@@ -154,7 +160,7 @@ export const userController = {
   find: async (request: FastifyRequest, reply: FastifyReply) => {
     // biome-ignore lint/style/noNonNullAssertion: "The user is always being checked through an addHook at the request level"
     const userId = request.userId!;
-    const parseResult = FindUserInput.safeParse(request.body);
+    const parseResult = FindUserInput.safeParse(request.query);
 
     if (!parseResult.success) {
       return reply.status(400).send({
@@ -197,7 +203,7 @@ const FindUserInput = z.object({
 });
 
 const FindUsersInput = z.object({
-  active: z.boolean().optional(),
+  active: z.coerce.boolean().optional(),
 });
 
 const DeletePictureInput = z.object({
