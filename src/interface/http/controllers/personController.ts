@@ -3,7 +3,10 @@ import { z } from "zod";
 import { findPeople } from "../../../application/queries/findPeople.ts";
 import { findPerson } from "../../../application/queries/findPerson.ts";
 import { findVideo } from "../../../application/queries/findVideo.ts";
-import { ExternalServiceError } from "../../../domain/applicationErrors.ts";
+import {
+  ExternalServiceError,
+  InvalidPersonError,
+} from "../../../domain/applicationErrors.ts";
 import { aiApiClient } from "../_lib/client.ts";
 import { createRequestScopedContainer } from "../_lib/index.ts";
 
@@ -11,8 +14,21 @@ export const personController = {
   create: async (request: FastifyRequest, reply: FastifyReply) => {
     // biome-ignore lint/style/noNonNullAssertion: "The user is always being checked through an addHook at the request level"
     const userId = request.userId!;
-    const parseResult = CreatePersonInput.safeParse(request.body);
-    const { createPerson } = createRequestScopedContainer(request);
+
+    const parts = request.parts();
+    let file: Buffer | undefined;
+    const bodyData: Record<string, unknown> = {};
+
+    for await (const part of parts) {
+      if (part.type === "file") {
+        file = await part.toBuffer();
+      } else {
+        bodyData[part.fieldname] = part.value;
+      }
+    }
+
+    const parseResult = CreatePersonInput.safeParse(bodyData);
+    const { createPerson } = createRequestScopedContainer();
 
     if (!parseResult.success) {
       return reply.status(400).send({
@@ -21,15 +37,26 @@ export const personController = {
       });
     }
 
-    const file: Buffer = (request.body as { file: Buffer }).file;
-
-    const embeddingResponse = await aiApiClient.post(JSON.stringify({ file }));
-
-    if (!embeddingResponse.data) {
-      throw new ExternalServiceError({ message: "Cannot process request " });
+    if (!file) {
+      throw new InvalidPersonError({
+        message: "To find a person, you need to add a picture",
+      });
     }
 
-    const embedding = (await embeddingResponse.data) as Buffer;
+    const fileBase64 = file.toString("base64");
+
+    const embeddingResponse = await aiApiClient.post("/create_person", {
+      image: fileBase64,
+    });
+
+    if (!embeddingResponse.data || !embeddingResponse.data.embedding) {
+      throw new ExternalServiceError({
+        message: "Cannot process request - no embedding returned",
+      });
+    }
+
+    const embeddingBase64 = embeddingResponse.data.embedding;
+    const embedding = Buffer.from(embeddingBase64, "base64");
 
     const result = await createPerson({
       person: {
@@ -45,7 +72,7 @@ export const personController = {
     // biome-ignore lint/style/noNonNullAssertion: "The user is always being checked through an addHook at the request level"
     const userId = request.userId!;
     const parseResult = DeletePersonInput.safeParse(request.query);
-    const { deletePerson } = createRequestScopedContainer(request);
+    const { deletePerson } = createRequestScopedContainer();
 
     if (!parseResult.success) {
       return reply.status(400).send({
@@ -61,6 +88,7 @@ export const personController = {
 
     return reply.status(203).send(result);
   },
+
   list: async (request: FastifyRequest, reply: FastifyReply) => {
     // biome-ignore lint/style/noNonNullAssertion: "The user is always being checked through an addHook at the request level"
     const userId = request.userId!;
@@ -102,15 +130,40 @@ export const personController = {
     const person = await findPerson(parseResult.data.id, userId);
     const video = await findVideo(parseResult.data.videoId, userId);
 
-    const findPersonResponse = await aiApiClient.post(
-      JSON.stringify({ person, video })
-    );
+    if (!person || !video) {
+      return reply.status(404).send({
+        error: "Person or video not found",
+      });
+    }
+
+    // For person detection in video, send to detection endpoint
+    const findPersonResponse = await aiApiClient.post("/find_person_in_video", {
+      person: {
+        id: person.id,
+        name: person.name,
+        embedding: person.embedding.toString("base64"), // Convert Buffer to base64 for API
+      },
+      video: {
+        id: video.id,
+        path: video.path,
+        // Add other video fields your AI needs
+      },
+    });
 
     if (!findPersonResponse.data) {
       throw new ExternalServiceError({ message: "Cannot process request " });
     }
 
-    return reply.status(302).send({ person, findPersonResponse });
+    // The AI returns JSON with matches array containing bbox and distance
+    // Example: { matches: [{ bbox: [x, y, w, h], distance: 0.5 }] }
+    const detectionResults = findPersonResponse.data;
+
+    return reply.status(200).send({
+      person,
+      video,
+      matches: detectionResults.matches || [],
+      total_matches: detectionResults.matches?.length || 0,
+    });
   },
 };
 
