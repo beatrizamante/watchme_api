@@ -195,12 +195,10 @@ export const userController = {
       });
     }
 
-    const { id, username, email } = parseResult.data;
+    const { id } = parseResult.data;
 
     const user = await findUser({
       id,
-      username,
-      email,
       user_id: userId,
     });
 
@@ -227,9 +225,7 @@ const UpdateUserParams = z.object({
 });
 
 const FindUserInput = z.object({
-  id: z.number().nonnegative().optional(),
-  username: z.string().nonempty().optional(),
-  email: z.string().nonempty().optional(),
+  id: z.number().nonnegative(),
 });
 
 const FindUsersInput = z.object({
