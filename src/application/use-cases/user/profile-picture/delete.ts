@@ -24,7 +24,10 @@ export const makeDeletePicture =
           message: "Couldn't find profile picture to delete",
         });
 
-      const isDeleted = profilePictureRepository.delete(profilePicture, trx);
+      const isDeleted = await profilePictureRepository.delete(
+        profilePicture,
+        trx
+      );
 
       await managePath.delete(profilePicture.path);
 

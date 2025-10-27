@@ -68,10 +68,14 @@ class UserModel extends BaseModel {
 
     const parsedJson = {
       ...super.$parseJson(actualJson, opt),
-      encrypted_password: password
-        ? bcrypt.hashSync(password, bcrypt.genSaltSync(10))
-        : null,
     };
+
+    if (password) {
+      parsedJson.encrypted_password = bcrypt.hashSync(
+        password,
+        bcrypt.genSaltSync(10)
+      );
+    }
 
     return parsedJson;
   }

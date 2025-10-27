@@ -107,6 +107,11 @@ export function usersApiRoutes(fastify: FastifyInstance) {
       schema: {
         summary: "Update a user",
         tags: ["Users"],
+        querystring: {
+          properties: {
+            id: { type: "number" },
+          },
+        },
         consumes: ["multipart/form-data"],
         description: `Update user account information. All fields are optional - only provided fields will be updated.
 

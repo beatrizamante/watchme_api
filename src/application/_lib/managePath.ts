@@ -36,7 +36,9 @@ export const managePath = {
   },
   delete: async (imagePath: string) => {
     try {
-      await fs.promises.unlink(imagePath);
+      if (fs.existsSync(imagePath)) {
+        await fs.promises.unlink(imagePath);
+      }
     } catch (error) {
       throw new ExternalServiceError({
         message: `There was an error while deleting old image: ${

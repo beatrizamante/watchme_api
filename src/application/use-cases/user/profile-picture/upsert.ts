@@ -30,6 +30,10 @@ export const makeUpsertPicture =
     let validPicture: ProfilePicture;
 
     try {
+      if (currentPicture) {
+        await managePath.delete(currentPicture.path);
+      }
+
       const filename = crypto.randomUUID();
 
       const extension = originalFilename
@@ -52,10 +56,6 @@ export const makeUpsertPicture =
         validPicture,
         trx
       );
-
-      if (currentPicture) {
-        await managePath.delete(currentPicture.path);
-      }
 
       await trx.commit();
 

@@ -71,20 +71,21 @@ export class UserRepository implements UserInterface {
       if (!user.id)
         throw new DatabaseError({ message: "Cannot update inexistent user" });
 
+      const updateData: Record<string, unknown> = {
+        username: user.username,
+        email: user.email,
+        role: user.role,
+        active: user.active,
+      };
+
+      if (user.password && user.password !== "dummy_password_for_validation") {
+        updateData.password = user.password;
+      }
+
       const updatedUser = await UserModel.query(trx).patchAndFetchById(
         user.id,
-        user
+        updateData
       );
-
-      if (!updatedUser) {
-        throw new DatabaseError({ message: "User not found for update" });
-      }
-
-      if (updatedUser.role === undefined) {
-        throw new DatabaseError({
-          message: "User role is undefined after update",
-        });
-      }
 
       return {
         id: updatedUser.id,

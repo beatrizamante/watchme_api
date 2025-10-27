@@ -23,9 +23,7 @@ export const makeUpdateUser =
     const trx = await UserModel.startTransaction();
 
     try {
-      const validUpdatedUser = new User(user);
-
-      const updatedUser = await userRepository.update(validUpdatedUser, trx);
+      const updatedUser = await userRepository.update(user, trx);
 
       if (!updatedUser.id)
         throw new InvalidUserError({ message: "Couldn't update user" });
@@ -34,7 +32,7 @@ export const makeUpdateUser =
         updatedUser.id
       );
 
-      if (file) {
+      if (file && file.length > 0) {
         validPicture = await upsertPicture({
           file,
           user_id: updatedUser.id,

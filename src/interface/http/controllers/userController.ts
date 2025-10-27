@@ -2,8 +2,18 @@ import { FastifyReply, FastifyRequest } from "fastify";
 import z from "zod/v4";
 import { findUser } from "../../../application/queries/findUser.ts";
 import { findUsers } from "../../../application/queries/findUsers.ts";
+import { User } from "../../../domain/User.ts";
 import { Roles } from "../../../interfaces/roles.ts";
 import { createRequestScopedContainer } from "../_lib/index.ts";
+
+type CreateUserDTO = {
+  id?: number;
+  username: string;
+  email: string;
+  password: string;
+  role: Roles;
+  active: boolean;
+};
 
 export const userController = {
   create: async (request: FastifyRequest, reply: FastifyReply) => {
@@ -59,11 +69,18 @@ export const userController = {
     try {
       // biome-ignore lint/style/noNonNullAssertion: "The user is always being checked through an addHook at the request level"
       const userId = request.userId!;
-
       const parts = request.parts();
       let file: Buffer | undefined;
       let originalFilename: string | undefined;
       const bodyData: Record<string, unknown> = {};
+
+      const paramsResult = UpdateUserParams.safeParse(request.query);
+      if (!paramsResult.success) {
+        return reply.status(400).send({
+          error: "Invalid user identifier",
+          details: paramsResult.error.issues,
+        });
+      }
 
       for await (const part of parts) {
         if (part.type === "file") {
@@ -87,23 +104,30 @@ export const userController = {
       }
 
       const currentUser = await findUser({
-        id: userId,
+        id: paramsResult.data.id,
         user_id: userId,
       });
 
       const { username, email, password, role, active } = parseResult.data;
 
-      const mergedUserData = {
-        id: userId,
+      const updateData: Partial<CreateUserDTO> = {
+        id: paramsResult.data.id,
         username: username ?? currentUser.username,
         email: email ?? currentUser.email,
-        password: password ?? currentUser.password,
         role: (role ?? currentUser.role) as Roles,
         active: active ?? currentUser.active,
       };
 
+      if (password) {
+        updateData.password = password;
+      } else {
+        updateData.password = "dummy_password_for_validation";
+      }
+
+      const userToUpdate = new User(updateData as CreateUserDTO);
+
       const result = await updateUser({
-        user: mergedUserData,
+        user: userToUpdate,
         file,
         originalFilename,
       });
@@ -132,9 +156,11 @@ export const userController = {
 
     const { deletePicture } = createRequestScopedContainer();
 
-    const result = await deletePicture({ id: userId });
+    await findUser({ id: parseResult.data.id, user_id: userId });
 
-    return reply.status(201).send(result);
+    const result = await deletePicture({ id: parseResult.data.id });
+
+    return reply.status(204).send(result);
   },
 
   list: async (request: FastifyRequest, reply: FastifyReply) => {
@@ -194,6 +220,10 @@ const UpdateUserInput = z.object({
   password: z.string().min(6).optional(),
   role: z.enum(["ADMIN", "USER"]).optional(),
   active: z.coerce.boolean().optional(),
+});
+
+const UpdateUserParams = z.object({
+  id: z.number().nonnegative(),
 });
 
 const FindUserInput = z.object({
