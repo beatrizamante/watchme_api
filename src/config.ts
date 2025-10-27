@@ -1,6 +1,6 @@
-import { Env, type EnvType } from "./_lib/env.ts";
 import type { Knex } from "knex";
 import pino from "pino";
+import { Env, type EnvType } from "./_lib/env.ts";
 import "dotenv";
 
 const env = Env.string("ENVIRONMENT", "development") as EnvType;

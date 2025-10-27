@@ -4,6 +4,7 @@ import { findPeople } from "../../../application/queries/findPeople.ts";
 import { findPerson } from "../../../application/queries/findPerson.ts";
 import { findVideo } from "../../../application/queries/findVideo.ts";
 import { ExternalServiceError } from "../../../domain/applicationErrors.ts";
+import { aiApiClient } from "../_lib/client.ts";
 import { createRequestScopedContainer } from "../_lib/index.ts";
 
 export const personController = {
@@ -22,22 +23,13 @@ export const personController = {
 
     const file: Buffer = (request.body as { file: Buffer }).file;
 
-    const embeddingResponse = await fetch(
-      "http://localhost:5000/upload-embedding",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ file }),
-      }
-    );
+    const embeddingResponse = await aiApiClient.post(JSON.stringify({ file }));
 
-    if (!embeddingResponse.ok) {
+    if (!embeddingResponse.data) {
       throw new ExternalServiceError({ message: "Cannot process request " });
     }
 
-    const embedding = (await embeddingResponse.json()) as Buffer;
+    const embedding = (await embeddingResponse.data) as Buffer;
 
     const result = await createPerson({
       person: {
@@ -110,18 +102,11 @@ export const personController = {
     const person = await findPerson(parseResult.data.id, userId);
     const video = await findVideo(parseResult.data.videoId, userId);
 
-    const findPersonResponse = await fetch(
-      "http://localhost:5000/find/:personId",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ person, video }),
-      }
+    const findPersonResponse = await aiApiClient.post(
+      JSON.stringify({ person, video })
     );
 
-    if (!findPersonResponse.ok) {
+    if (!findPersonResponse.data) {
       throw new ExternalServiceError({ message: "Cannot process request " });
     }
 
