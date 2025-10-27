@@ -1,10 +1,7 @@
-import { ModelObject, ModelOptions, Pojo, RelationMappings } from "objection";
-import { BaseModel } from "./BaseModel.js";
 import bcrypt from "bcryptjs";
-import { VideoModel } from "./VideoModel.ts";
-import { PersonModel } from "./PersonModel.ts";
-import { ProfilePictureModel } from "./ProfilePictureModel.ts";
+import { ModelObject, ModelOptions, Pojo, RelationMappings } from "objection";
 import { Roles } from "../../../interfaces/roles.ts";
+import { BaseModel } from "./BaseModel.js";
 
 type AuthParams = {
   email: string;
@@ -25,7 +22,7 @@ class UserModel extends BaseModel {
   static relationMappings: RelationMappings = {
     person: {
       relation: BaseModel.HasManyRelation,
-      modelClass: PersonModel,
+      modelClass: "PersonModel",
       join: {
         from: "users.id",
         to: "people.user_id",
@@ -33,7 +30,7 @@ class UserModel extends BaseModel {
     },
     profilePicture: {
       relation: BaseModel.HasOneRelation,
-      modelClass: ProfilePictureModel,
+      modelClass: "ProfilePictureModel",
       join: {
         from: "users.id",
         to: "profile_pictures.user_id",
@@ -41,7 +38,7 @@ class UserModel extends BaseModel {
     },
     video: {
       relation: BaseModel.HasManyRelation,
-      modelClass: VideoModel,
+      modelClass: "VideoModel",
       join: {
         from: "users.id",
         to: "videos.user_id",

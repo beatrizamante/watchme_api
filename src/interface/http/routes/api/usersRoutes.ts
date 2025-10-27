@@ -17,7 +17,7 @@ export function usersApiRoutes(fastify: FastifyInstance) {
   );
 
   fastify.get(
-    "/users",
+    "/user",
     {
       schema: {
         summary: "Find a specific user",
@@ -69,7 +69,7 @@ export function usersApiRoutes(fastify: FastifyInstance) {
   );
 
   fastify.patch(
-    "/users",
+    "/user",
     {
       schema: {
         summary: "Update a user",

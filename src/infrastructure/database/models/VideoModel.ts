@@ -1,6 +1,5 @@
 import { ModelObject, RelationMappings } from "objection";
 import { BaseModel } from "./BaseModel.js";
-import { UserModel } from "./UserModel.ts";
 
 class VideoModel extends BaseModel {
   static tableName = "videos";
@@ -11,11 +10,11 @@ class VideoModel extends BaseModel {
 
   static relationMappings: RelationMappings = {
     user: {
-      relation: BaseModel.HasManyRelation,
-      modelClass: UserModel,
+      relation: BaseModel.BelongsToOneRelation,
+      modelClass: "UserModel",
       join: {
         from: "videos.user_id",
-        to: "user.id",
+        to: "users.id",
       },
     },
   };

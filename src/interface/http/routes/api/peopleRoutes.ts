@@ -17,7 +17,7 @@ export function peopleApiRoutes(fastify: FastifyInstance) {
   );
 
   fastify.get(
-    "/people",
+    "/person",
     {
       schema: {
         summary: "Find a specific person",
@@ -34,7 +34,7 @@ export function peopleApiRoutes(fastify: FastifyInstance) {
   );
 
   fastify.get(
-    "/people",
+    "/person/find",
     {
       schema: {
         summary: "Find a specific person in video",
@@ -52,7 +52,7 @@ export function peopleApiRoutes(fastify: FastifyInstance) {
   );
 
   fastify.post(
-    "/people",
+    "/person",
     {
       schema: {
         summary: "Create new person's embedding",
@@ -81,7 +81,7 @@ export function peopleApiRoutes(fastify: FastifyInstance) {
   );
 
   fastify.delete(
-    "/people",
+    "/person",
     {
       schema: {
         summary: "Delete person",
