@@ -7,18 +7,16 @@ import {
   ExternalServiceError,
   InvalidPersonError,
 } from "../../../domain/applicationErrors.ts";
+import { fileSizePolicy } from "../../../policies/fileSizePolicy.ts";
 import { aiApiClient } from "../_lib/client.ts";
 import { createRequestScopedContainer } from "../_lib/index.ts";
 import { multiformFilter } from "../_lib/multiformFilter.ts";
-
 export const personController = {
   create: async (request: FastifyRequest, reply: FastifyReply) => {
     // biome-ignore lint/style/noNonNullAssertion: "The user is always being checked through an addHook at the request level"
     const userId = request.userId!;
-
     const parts = request.parts();
     const { bodyData, file } = await multiformFilter(parts);
-
     const parseResult = CreatePersonInput.safeParse(bodyData);
     const { createPerson } = createRequestScopedContainer();
 
@@ -34,6 +32,8 @@ export const personController = {
         message: "To find a person, you need to add a picture",
       });
     }
+
+    fileSizePolicy({ file });
 
     const fileBase64 = file.toString("base64");
 

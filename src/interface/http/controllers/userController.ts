@@ -4,6 +4,8 @@ import { findUser } from "../../../application/queries/findUser.ts";
 import { findUsers } from "../../../application/queries/findUsers.ts";
 import { User } from "../../../domain/User.ts";
 import { Roles } from "../../../interfaces/roles.ts";
+import { fileSizePolicy } from "../../../policies/fileSizePolicy.ts";
+import { imagePolicy } from "../../../policies/imagePolicy.ts";
 import { createRequestScopedContainer } from "../_lib/index.ts";
 import { multiformFilter } from "../_lib/multiformFilter.ts";
 
@@ -23,6 +25,11 @@ export const userController = {
 
     const parseResult = CreateUserInput.safeParse(bodyData);
     const { createUser } = createRequestScopedContainer();
+
+    if (file && originalFilename) {
+      fileSizePolicy({ file });
+      imagePolicy({ originalFilename });
+    }
 
     if (!parseResult.success) {
       return reply.status(400).send({
@@ -60,6 +67,11 @@ export const userController = {
         error: "Invalid user identifier",
         details: paramsResult.error.issues,
       });
+    }
+
+    if (file && originalFilename) {
+      fileSizePolicy({ file });
+      imagePolicy({ originalFilename });
     }
 
     const parseResult = UpdateUserInput.safeParse(bodyData);
