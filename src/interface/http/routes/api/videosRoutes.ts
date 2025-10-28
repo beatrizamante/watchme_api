@@ -40,16 +40,13 @@ export function videosApiRoutes(fastify: FastifyInstance) {
         summary: "Create a new video",
         tags: ["Videos"],
         consumes: ["multipart/form-data"],
-        body: {
-          type: "object",
-          properties: {
-            video: {
-              type: "string",
-              format: "binary",
-              description: "Video file",
-            },
-          },
-        },
+        description: `Create a new video for people tracking.
+
+**Required form fields:**
+- video (file): The video you need to search in
+
+**Example multipart form:**
+- file: [upload file]`,
       },
     },
     videoController.create

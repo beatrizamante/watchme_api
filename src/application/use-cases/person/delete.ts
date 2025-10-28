@@ -1,4 +1,3 @@
-import { InvalidPersonError } from "../../../domain/applicationErrors.ts";
 import { PersonInterface } from "../../../domain/PersonRepository.ts";
 import { findPerson } from "../../queries/findPerson.ts";
 

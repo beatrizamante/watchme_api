@@ -3,6 +3,7 @@ import {
   UnauthorizedError,
 } from "../../domain/applicationErrors.ts";
 import { UserModel } from "../../infrastructure/database/models/UserModel.ts";
+import { UserSerializer } from "../../interface/serializer/serializeUser.ts";
 
 type FindUser = {
   id: number;
@@ -25,5 +26,5 @@ export const findUser = async ({ id, user_id }: FindUser) => {
     throw new InvalidUserError({ message: "This user doesn't exist" });
   }
 
-  return foundUser;
+  return UserSerializer.serialize(foundUser);
 };

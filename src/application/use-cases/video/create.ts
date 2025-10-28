@@ -5,6 +5,7 @@ import {
 import { Video } from "../../../domain/Video.ts";
 import { VideoInterface } from "../../../domain/VideoRepository.ts";
 import { VideoModel } from "../../../infrastructure/database/models/VideoModel.ts";
+import { VideoSerializer } from "../../../interface/serializer/serializeVideo.ts";
 import { managePath } from "../../_lib/managePath.ts";
 
 type Dependencies = {
@@ -13,17 +14,22 @@ type Dependencies = {
 
 type CreateVideoParams = {
   video: Buffer;
+  originalFilename: string;
   userId: number;
 };
 
 export const makeCreateVideo =
   ({ videoRepository }: Dependencies) =>
-  async ({ video, userId }: CreateVideoParams) => {
+  async ({ video, userId, originalFilename }: CreateVideoParams) => {
     const trx = await VideoModel.startTransaction();
 
     try {
       const fileName = crypto.randomUUID();
-      const validPath = await managePath.save(video, fileName);
+      const validPath = await managePath.save(
+        video,
+        fileName,
+        originalFilename
+      );
 
       if (!validPath)
         throw new ExternalServiceError({ message: "Cannot create path " });
@@ -33,11 +39,11 @@ export const makeCreateVideo =
         path: validPath,
       });
 
-      const createdVideo = videoRepository.create(validVideo, trx);
+      const createdVideo = await videoRepository.create(validVideo, trx);
 
       await trx.commit();
 
-      return createdVideo;
+      return VideoSerializer.serialize(createdVideo);
     } catch (error) {
       await trx.rollback();
 

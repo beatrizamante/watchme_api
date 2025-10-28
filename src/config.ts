@@ -22,6 +22,7 @@ const http = {
   port: Env.number("PORT", 3000),
   host: Env.string("HOST", "0.0.0.0"),
   baseUrl: Env.string("SERVER_BASE_URL", "http://localhost:3000"),
+  apiBaseUrl: Env.string("AI_BASE_URL", "http://localhost:5000"),
   logger: {
     development: loggerConfig,
     production: true,
@@ -61,10 +62,7 @@ const db = {
 } as const;
 
 const secret = {
-  sessionSecret: Env.string(
-    "SESSION_SECRET",
-    "e15649e1be4119c62c403130bb4d0ee9181d74c0693f38757d68712ccea2918d"
-  ),
+  sessionSecret: Env.string("SESSION_SECRET", "This session needs a secret"),
 };
 
 const config = { env, http, db, secret };

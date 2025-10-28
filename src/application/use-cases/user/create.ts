@@ -2,6 +2,8 @@ import { InvalidUserError } from "../../../domain/applicationErrors.ts";
 import { User } from "../../../domain/User.ts";
 import { UserInterface } from "../../../domain/UserRepository.ts";
 import { UserModel } from "../../../infrastructure/database/models/UserModel.ts";
+import { ProfilePictureSerializer } from "../../../interface/serializer/serializeProfilePicture.ts";
+import { UserSerializer } from "../../../interface/serializer/serializeUser.ts";
 import { UpsertPicture } from "./profile-picture/upsert.ts";
 
 type Dependencies = {
@@ -28,7 +30,7 @@ export const makeCreateUser =
       if (!newUser.id)
         throw new InvalidUserError({ message: "Couldn't create user" });
 
-      let validPicture = {};
+      let validPicture = null;
       if (file) {
         validPicture = await upsertPicture({
           file,
@@ -39,7 +41,12 @@ export const makeCreateUser =
 
       await trx.commit();
 
-      return { validPicture, newUser };
+      return {
+        user: UserSerializer.serialize(newUser),
+        profilePicture: validPicture
+          ? ProfilePictureSerializer.serialize(validPicture)
+          : null,
+      };
     } catch (error) {
       await trx.rollback();
 

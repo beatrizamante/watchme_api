@@ -1,5 +1,6 @@
 import { UnauthorizedError } from "../../domain/applicationErrors.ts";
 import { UserModel } from "../../infrastructure/database/models/UserModel.ts";
+import { UserSerializer } from "../../interface/serializer/serializeUser.ts";
 
 type FindUsers = {
   active?: boolean;
@@ -19,5 +20,6 @@ export const findUsers = async ({ active, user_id }: FindUsers) => {
     query.where("active", active);
   }
 
-  return await query.select();
+  const users = await query.select();
+  return UserSerializer.serializeList(users);
 };
