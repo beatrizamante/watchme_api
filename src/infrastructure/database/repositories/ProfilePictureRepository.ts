@@ -1,16 +1,17 @@
 import { Transaction } from "objection";
 import { DatabaseError } from "../../../domain/applicationErrors.ts";
-import { ProfileIPictureInterface } from "../../../domain/ProfilePictureRepository.ts";
+import { ProfilePicture } from "../../../domain/ProfilePicture.ts";
+import { ProfilePictureInterface } from "../../../domain/ProfilePictureRepository.ts";
 import { ProfilePictureModel } from "../models/ProfilePictureModel.ts";
 
-export class ProfilePictureRepository implements ProfileIPictureInterface {
-  async findByUserId(user_id: number) {
+export class ProfilePictureRepository implements ProfilePictureInterface {
+  async findByUserId(user_id: number): Promise<ProfilePicture | undefined> {
     try {
       const profilePicture = await ProfilePictureModel.query()
         .where("user_id", user_id)
         .first();
 
-      return profilePicture ?? undefined;
+      return profilePicture;
     } catch (error) {
       const message = error instanceof Error ? error.message : "Database error";
 
@@ -20,7 +21,7 @@ export class ProfilePictureRepository implements ProfileIPictureInterface {
     }
   }
 
-  async upsert(profilePicture: ProfilePictureModel, trx: Transaction) {
+  async upsert(profilePicture: ProfilePicture, trx: Transaction) {
     try {
       const createdProfilePicture = await ProfilePictureModel.query(
         trx
@@ -36,10 +37,14 @@ export class ProfilePictureRepository implements ProfileIPictureInterface {
     }
   }
 
-  async delete(profilePicture: ProfilePictureModel): Promise<number> {
+  async delete(
+    profilePicture: ProfilePicture,
+    trx: Transaction
+  ): Promise<number> {
     try {
       const deletedProfilePicture =
-        await ProfilePictureModel.query().deleteById(profilePicture.id);
+        // biome-ignore lint/style/noNonNullAssertion: "The function is always being called only if the video is found"
+        await ProfilePictureModel.query(trx).deleteById(profilePicture.id!);
 
       return deletedProfilePicture;
     } catch (error) {

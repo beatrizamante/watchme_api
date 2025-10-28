@@ -46,7 +46,7 @@ export class UserRepository implements UserInterface {
     }
   }
 
-  async create(user: User, trx: Transaction): Promise<User> {
+  async create(user: User, trx: Transaction): Promise<Omit<User, "password">> {
     try {
       const createdUser = await UserModel.query(trx).insertAndFetch(user);
 
@@ -54,7 +54,6 @@ export class UserRepository implements UserInterface {
         id: createdUser.id,
         username: createdUser.username,
         email: createdUser.email,
-        password: createdUser.password,
         active: createdUser.active,
         role: createdUser.role,
       };
@@ -67,31 +66,31 @@ export class UserRepository implements UserInterface {
     }
   }
 
-  async update(user: User, trx: Transaction): Promise<User> {
+  async update(user: User, trx: Transaction): Promise<Omit<User, "password">> {
     try {
       if (!user.id)
         throw new DatabaseError({ message: "Cannot update inexistent user" });
 
+      const updateData: Record<string, unknown> = {
+        username: user.username,
+        email: user.email,
+        role: user.role,
+        active: user.active,
+      };
+
+      if (user.password && user.password !== "dummy_password_for_validation") {
+        updateData.password = user.password;
+      }
+
       const updatedUser = await UserModel.query(trx).patchAndFetchById(
         user.id,
-        user
+        updateData
       );
-
-      if (!updatedUser) {
-        throw new DatabaseError({ message: "User not found for update" });
-      }
-
-      if (updatedUser.role === undefined) {
-        throw new DatabaseError({
-          message: "User role is undefined after update",
-        });
-      }
 
       return {
         id: updatedUser.id,
         username: updatedUser.username,
         email: updatedUser.email,
-        password: updatedUser.password,
         active: updatedUser.active,
         role: updatedUser.role,
       };

@@ -27,15 +27,15 @@ export const authentication = {
       sameSite: "none",
     });
 
-    return reply.send({ message: "Login successful" });
+    return reply.status(201).send({ message: "Login successful" });
   },
 
   logout: async (__: FastifyRequest, reply: FastifyReply) => {
     reply.clearCookie("token", { path: "/" });
-    return reply.send({ message: "Logout" });
+    return reply.status(200).send({ message: "Logged Out" });
   },
 
-  isAuthenticated: async (request: FastifyRequest, reply: FastifyReply) => {
+  isAuthenticated: async (request: FastifyRequest, _: FastifyReply) => {
     try {
       const { token } = request.cookies;
 

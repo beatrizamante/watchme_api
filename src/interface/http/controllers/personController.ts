@@ -2,18 +2,23 @@ import { FastifyReply, FastifyRequest } from "fastify";
 import { z } from "zod";
 import { findPeople } from "../../../application/queries/findPeople.ts";
 import { findPerson } from "../../../application/queries/findPerson.ts";
-import { createPerson } from "../../../application/use-cases/person/create.ts";
-import { deletePerson } from "../../../application/use-cases/person/delete.ts";
-import { UnauthorizedError } from "../../../domain/applicationErrors.ts";
-import { PersonRepository } from "../../../infrastructure/database/repositories/PersonRepository.ts";
-
-const personRepository = new PersonRepository();
-
+import { findVideo } from "../../../application/queries/findVideo.ts";
+import {
+  ExternalServiceError,
+  InvalidPersonError,
+} from "../../../domain/applicationErrors.ts";
+import { fileSizePolicy } from "../../../policies/fileSizePolicy.ts";
+import { aiApiClient } from "../_lib/client.ts";
+import { createRequestScopedContainer } from "../_lib/index.ts";
+import { multiformFilter } from "../_lib/multiformFilter.ts";
 export const personController = {
   create: async (request: FastifyRequest, reply: FastifyReply) => {
-    // biome-ignore lint/style/noNonNullAssertion: ""
+    // biome-ignore lint/style/noNonNullAssertion: "The user is always being checked through an addHook at the request level"
     const userId = request.userId!;
-    const parseResult = CreatePersonInput.safeParse(request.body);
+    const parts = request.parts();
+    const { bodyData, file } = await multiformFilter(parts);
+    const parseResult = CreatePersonInput.safeParse(bodyData);
+    const { createPerson } = createRequestScopedContainer();
 
     if (!parseResult.success) {
       return reply.status(400).send({
@@ -22,23 +27,28 @@ export const personController = {
       });
     }
 
-    const file: Buffer = (request.body as { file: Buffer }).file;
-
-    const embeddingResponse = await fetch("http://localhost:5000/embed", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ file }),
-    });
-
-    if (!embeddingResponse.ok) {
-      return reply
-        .status(502)
-        .send({ error: "Failed to get embedding Morgan" });
+    if (!file) {
+      throw new InvalidPersonError({
+        message: "To find a person, you need to add a picture",
+      });
     }
 
-    const embedding = (await embeddingResponse.json()) as Buffer;
+    fileSizePolicy({ file });
+
+    const fileBase64 = file.toString("base64");
+
+    const embeddingResponse = await aiApiClient.post("/create_person", {
+      image: fileBase64,
+    });
+
+    if (!embeddingResponse.data || !embeddingResponse.data.embedding) {
+      throw new ExternalServiceError({
+        message: "Cannot process request - no embedding returned",
+      });
+    }
+
+    const embeddingBase64 = embeddingResponse.data.embedding;
+    const embedding = Buffer.from(embeddingBase64, "base64");
 
     const result = await createPerson({
       person: {
@@ -46,15 +56,16 @@ export const personController = {
         user_id: userId,
         embedding,
       },
-      personRepository,
     });
 
     return reply.status(201).send(result);
   },
+
   delete: async (request: FastifyRequest, reply: FastifyReply) => {
-    // biome-ignore lint/style/noNonNullAssertion: ""
+    // biome-ignore lint/style/noNonNullAssertion: "The user is always being checked through an addHook at the request level"
     const userId = request.userId!;
     const parseResult = DeletePersonInput.safeParse(request.query);
+    const { deletePerson } = createRequestScopedContainer();
 
     if (!parseResult.success) {
       return reply.status(400).send({
@@ -66,22 +77,22 @@ export const personController = {
     const result = await deletePerson({
       personId: parseResult.data.id,
       userId,
-      personRepository,
     });
 
-    return reply.status(201).send(result);
+    return reply.status(203).send(result);
   },
+
   list: async (request: FastifyRequest, reply: FastifyReply) => {
-    // biome-ignore lint/style/noNonNullAssertion: ""
+    // biome-ignore lint/style/noNonNullAssertion: "The user is always being checked through an addHook at the request level"
     const userId = request.userId!;
 
     const people = await findPeople(userId);
 
-    return reply.status(301).send(people);
+    return reply.status(302).send(people);
   },
 
   find: async (request: FastifyRequest, reply: FastifyReply) => {
-    // biome-ignore lint/style/noNonNullAssertion: ""
+    // biome-ignore lint/style/noNonNullAssertion: "The user is always being checked through an addHook at the request level"
     const userId = request.userId!;
     const parseResult = FindPerson.safeParse(request.query);
 
@@ -94,7 +105,53 @@ export const personController = {
 
     const person = await findPerson(parseResult.data.id, userId);
 
-    return reply.status(301).send(person);
+    return reply.status(302).send(person);
+  },
+
+  findInVideo: async (request: FastifyRequest, reply: FastifyReply) => {
+    // biome-ignore lint/style/noNonNullAssertion: "The user is always being checked through an addHook at the request level"
+    const userId = request.userId!;
+    const parseResult = FindPersonInVideo.safeParse(request.query);
+
+    if (!parseResult.success) {
+      return reply.status(400).send({
+        error: "Invalid input",
+        details: parseResult.error.issues,
+      });
+    }
+
+    const person = await findPerson(parseResult.data.id, userId);
+    const video = await findVideo(parseResult.data.videoId, userId);
+
+    if (!person || !video) {
+      return reply.status(404).send({
+        error: "Person or video not found",
+      });
+    }
+
+    const findPersonResponse = await aiApiClient.post("/find_person_in_video", {
+      person: {
+        id: person.id,
+        name: person.name,
+        embedding: person.embedding.toString("base64"),
+      },
+      video: {
+        id: video.id,
+        path: video.path,
+      },
+    });
+
+    if (!findPersonResponse.data) {
+      throw new ExternalServiceError({ message: "Cannot process request " });
+    }
+
+    const detectionResults = findPersonResponse.data;
+    return reply.status(200).send({
+      person,
+      video,
+      matches: detectionResults.matches || [],
+      total_matches: detectionResults.matches?.length || 0,
+    });
   },
 };
 
@@ -108,4 +165,9 @@ const DeletePersonInput = z.object({
 
 const FindPerson = z.object({
   id: z.number().nonnegative().nonoptional(),
+});
+
+const FindPersonInVideo = z.object({
+  id: z.number().nonnegative().nonoptional(),
+  videoId: z.number().nonnegative().nonoptional(),
 });

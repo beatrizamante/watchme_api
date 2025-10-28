@@ -5,19 +5,6 @@ import { VideoInterface } from "../../../domain/VideoRepository.ts";
 import { VideoModel } from "../models/VideoModel.ts";
 
 export class VideoRepository implements VideoInterface {
-  async findById(id: number) {
-    try {
-      const video = await VideoModel.query().findById(id);
-
-      return video;
-    } catch (error) {
-      const message = error instanceof Error ? error.message : "Database error";
-
-      throw new DatabaseError({
-        message: `There was an error searching for the id: ${message}`,
-      });
-    }
-  }
   async create(video: Video, trx: Transaction) {
     try {
       const createdVideo = await VideoModel.query(trx).insertAndFetch(video);

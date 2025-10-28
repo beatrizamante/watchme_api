@@ -2,30 +2,41 @@ import { FastifyReply, FastifyRequest } from "fastify";
 import z from "zod/v4";
 import { findVideo } from "../../../application/queries/findVideo.ts";
 import { findVideos } from "../../../application/queries/findVideos.ts";
-import { createVideo } from "../../../application/use-cases/video/create.ts";
-import { deleteVideo } from "../../../application/use-cases/video/delete.ts";
-import { VideoRepository } from "../../../infrastructure/database/repositories/VideoRepository.ts";
-
-const videoRepository = new VideoRepository();
+import { InvalidVideoError } from "../../../domain/applicationErrors.ts";
+import { fileSizePolicy } from "../../../policies/fileSizePolicy.ts";
+import { videoPolicy } from "../../../policies/videoPolicy.ts";
+import { createRequestScopedContainer } from "../_lib/index.ts";
+import { multiformFilter } from "../_lib/multiformFilter.ts";
 
 export const videoController = {
   create: async (request: FastifyRequest, reply: FastifyReply) => {
-    // biome-ignore lint/style/noNonNullAssertion: ""
+    // biome-ignore lint/style/noNonNullAssertion: "The user is always being checked through an addHook at the request level"
     const userId = request.userId!;
-    const video: Buffer = (request.body as { file: Buffer }).file;
+    const parts = request.parts();
+    const { file, originalFilename } = await multiformFilter(parts);
+    const { createVideo } = createRequestScopedContainer();
+
+    if (!file || !originalFilename) {
+      throw new InvalidVideoError({ message: "You must upload a video" });
+    }
+
+    fileSizePolicy({ file });
+    videoPolicy({ originalFilename });
 
     const result = await createVideo({
-      video,
+      video: file,
       userId,
-      videoRepository,
+      originalFilename,
     });
 
     return reply.status(201).send(result);
   },
+
   delete: async (request: FastifyRequest, reply: FastifyReply) => {
-    // biome-ignore lint/style/noNonNullAssertion: ""
+    // biome-ignore lint/style/noNonNullAssertion: "The user is always being checked through an addHook at the request level"
     const userId = request.userId!;
     const parseResult = DeleteVideoInput.safeParse(request.query);
+    const { deleteVideo } = createRequestScopedContainer();
 
     if (!parseResult.success) {
       return reply.status(400).send({
@@ -37,21 +48,22 @@ export const videoController = {
     const result = await deleteVideo({
       videoId: parseResult.data.id,
       userId,
-      videoRepository,
     });
 
-    return reply.status(201).send(result);
+    return reply.status(203).send(result);
   },
+
   list: async (request: FastifyRequest, reply: FastifyReply) => {
-    // biome-ignore lint/style/noNonNullAssertion: ""
+    // biome-ignore lint/style/noNonNullAssertion: "The user is always being checked through an addHook at the request level"
     const userId = request.userId!;
 
     const videos = await findVideos(userId);
 
-    return reply.status(200).send(videos);
+    return reply.status(302).send(videos);
   },
+
   find: async (request: FastifyRequest, reply: FastifyReply) => {
-    // biome-ignore lint/style/noNonNullAssertion: ""
+    // biome-ignore lint/style/noNonNullAssertion: "The user is always being checked through an addHook at the request level"
     const userId = request.userId!;
     const parseResult = FindVideoInput.safeParse(request.query);
 
@@ -64,7 +76,7 @@ export const videoController = {
 
     const video = await findVideo(parseResult.data.id, userId);
 
-    return reply.status(301).send(video);
+    return reply.status(302).send(video);
   },
 };
 

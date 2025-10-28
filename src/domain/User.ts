@@ -19,7 +19,7 @@ export class User {
   public readonly active: boolean;
 
   constructor(user: CreateUserDTO) {
-    this.id = user.id || 0;
+    this.id = user.id;
 
     if (!user.username)
       throw new InvalidUserError({ message: "User needs an username " });
@@ -31,6 +31,11 @@ export class User {
 
     if (!user.password)
       throw new InvalidUserError({ message: "User needs a password " });
+
+    if (user.password.length < 6)
+      throw new InvalidUserError({
+        message: "Password must contain at least 6 characters",
+      });
     this.password = user.password;
 
     if (!Object.values(Roles).includes(user.role))

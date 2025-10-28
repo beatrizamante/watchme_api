@@ -5,6 +5,7 @@ import {
 } from "../../domain/applicationErrors.ts";
 import { PersonModel } from "../../infrastructure/database/models/PersonModel.ts";
 import { UserModel } from "../../infrastructure/database/models/UserModel.ts";
+import { PersonSerializer } from "../../interface/serializer/serializePerson.ts";
 
 export const findPerson = async (id: number, user_id: number) => {
   try {
@@ -33,7 +34,7 @@ export const findPerson = async (id: number, user_id: number) => {
         message: "This person doesn't exist",
       });
 
-    return person;
+    return PersonSerializer.serialize(person);
   } catch (error) {
     throw new DatabaseError({
       message: `There was an error retrieving this person: ${error}`,

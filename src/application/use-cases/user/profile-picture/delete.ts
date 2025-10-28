@@ -1,36 +1,46 @@
-import {
-  ExternalServiceError,
-  InvalidProfilePictureError,
-} from "../../../../domain/applicationErrors.ts";
-import { ProfilePicture } from "../../../../domain/ProfilePicture.ts";
-import { ProfileIPictureInterface } from "../../../../domain/ProfilePictureRepository.ts";
+import { InvalidProfilePictureError } from "../../../../domain/applicationErrors.ts";
+import { ProfilePictureInterface } from "../../../../domain/ProfilePictureRepository.ts";
 import { ProfilePictureModel } from "../../../../infrastructure/database/models/ProfilePictureModel.ts";
-import { managePath } from "../../../_lib/managePath.ts";
+import { managePath } from "../../../../infrastructure/systemfile/managePath.ts";
+
+type Dependencies = {
+  profilePictureRepository: ProfilePictureInterface;
+};
 
 type DeleteProfilePictureParams = {
-  profilePicture: ProfilePicture;
-  profilePictureRepository: ProfileIPictureInterface;
+  id: number;
 };
 
-export const deletePicture = async ({
-  profilePicture,
-  profilePictureRepository,
-}: DeleteProfilePictureParams) => {
-  const trx = await ProfilePictureModel.startTransaction();
+export const makeDeletePicture =
+  ({ profilePictureRepository }: Dependencies) =>
+  async ({ id }: DeleteProfilePictureParams) => {
+    const trx = await ProfilePictureModel.startTransaction();
 
-  try {
-    const isDeleted = profilePictureRepository.delete(profilePicture, trx);
+    try {
+      const profilePicture = await profilePictureRepository.findByUserId(id);
 
-    await managePath.delete(profilePicture.path);
+      if (!profilePicture)
+        throw new InvalidProfilePictureError({
+          message: "Couldn't find profile picture to delete",
+        });
 
-    await trx.commit();
+      const isDeleted = await profilePictureRepository.delete(
+        profilePicture,
+        trx
+      );
 
-    return isDeleted;
-  } catch (error) {
-    await trx.rollback();
+      await managePath.delete(profilePicture.path);
 
-    throw new InvalidProfilePictureError({
-      message: `Cannot create or update picture: ${error}`,
-    });
-  }
-};
+      await trx.commit();
+
+      return isDeleted;
+    } catch (error) {
+      await trx.rollback();
+
+      throw new InvalidProfilePictureError({
+        message: `Cannot create or update picture: ${error}`,
+      });
+    }
+  };
+
+export type DeletePicture = ReturnType<typeof makeDeletePicture>;

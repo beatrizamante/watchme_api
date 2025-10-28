@@ -1,51 +1,63 @@
 import { InvalidUserError } from "../../../domain/applicationErrors.ts";
-import { ProfileIPictureInterface } from "../../../domain/ProfilePictureRepository.ts";
+import { ProfilePictureInterface } from "../../../domain/ProfilePictureRepository.ts";
 import { User } from "../../../domain/User.ts";
 import { UserInterface } from "../../../domain/UserRepository.ts";
 import { UserModel } from "../../../infrastructure/database/models/UserModel.ts";
-import { upsertPicture } from "./profile-picture/create.ts";
+import { ProfilePictureSerializer } from "../../../interface/serializer/serializeProfilePicture.ts";
+import { UserSerializer } from "../../../interface/serializer/serializeUser.ts";
+import { UpsertPicture } from "./profile-picture/upsert.ts";
+
+type Dependencies = {
+  userRepository: UserInterface;
+  profilePictureRepository: ProfilePictureInterface;
+  upsertPicture: UpsertPicture;
+};
 
 type UpdateUserParams = {
   user: User;
   file?: Buffer;
-  userRepository: UserInterface;
-  profilePictureRepository: ProfileIPictureInterface;
+  originalFilename?: string;
 };
 
-export const updateUser = async ({
-  user,
-  file,
-  userRepository,
-  profilePictureRepository,
-}: UpdateUserParams) => {
-  const trx = await UserModel.startTransaction();
+export const makeUpdateUser =
+  ({ userRepository, profilePictureRepository, upsertPicture }: Dependencies) =>
+  async ({ user, file, originalFilename }: UpdateUserParams) => {
+    const trx = await UserModel.startTransaction();
 
-  try {
-    const validUpdatedUser = new User(user);
+    try {
+      const updatedUser = await userRepository.update(user, trx);
 
-    const updatedUser = await userRepository.update(validUpdatedUser, trx);
+      if (!updatedUser.id)
+        throw new InvalidUserError({ message: "Couldn't update user" });
 
-    if (!updatedUser.id)
-      throw new InvalidUserError({ message: "Couldn't create user" });
+      let validPicture = await profilePictureRepository.findByUserId(
+        updatedUser.id
+      );
 
-    let validPicture = await profilePictureRepository.findByUserId(
-      updatedUser.id
-    );
+      if (file && file.length > 0) {
+        validPicture = await upsertPicture({
+          file,
+          user_id: updatedUser.id,
+          originalFilename,
+          currentPicture: validPicture,
+        });
+      }
 
-    if (file) {
-      validPicture = await upsertPicture({
-        file,
-        user_id: updatedUser.id,
-        profilePictureRepository,
+      await trx.commit();
+
+      return {
+        user: UserSerializer.serialize(updatedUser),
+        profilePicture: validPicture
+          ? ProfilePictureSerializer.serialize(validPicture)
+          : null,
+      };
+    } catch (error) {
+      await trx.rollback();
+
+      throw new InvalidUserError({
+        message: `Could not create user: ${error}`,
       });
     }
+  };
 
-    await trx.commit();
-
-    return { validPicture, updatedUser };
-  } catch (error) {
-    await trx.rollback();
-
-    throw new InvalidUserError({ message: `Could not create user: ${error}` });
-  }
-};
+export type UpdateUser = ReturnType<typeof makeUpdateUser>;

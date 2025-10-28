@@ -12,7 +12,7 @@ export class Video {
   public readonly path: string;
 
   constructor(video: CreateVideoDTO) {
-    this.id = video.id || 0;
+    this.id = video.id;
 
     if (!video.user_id)
       throw new InvalidVideoError({

@@ -1,24 +1,21 @@
-import { InvalidPersonError } from "../../../domain/applicationErrors.ts";
 import { PersonInterface } from "../../../domain/PersonRepository.ts";
 import { findPerson } from "../../queries/findPerson.ts";
+
+type Dependencies = {
+  personRepository: PersonInterface;
+};
 
 type DeletePersonParams = {
   personId: number;
   userId: number;
-  personRepository: PersonInterface;
 };
 
-export const deletePerson = async ({
-  personId,
-  userId,
-  personRepository,
-}: DeletePersonParams) => {
-  const validPerson = await findPerson(personId, userId);
+export const makeDeletePerson =
+  ({ personRepository }: Dependencies) =>
+  async ({ personId, userId }: DeletePersonParams) => {
+    const validPerson = await findPerson(personId, userId);
 
-  if (!validPerson)
-    throw new InvalidPersonError({
-      message: "This person doesn't exist for this user",
-    });
+    return await personRepository.delete(validPerson);
+  };
 
-  return await personRepository.delete(validPerson);
-};
+export type DeletePerson = ReturnType<typeof makeDeletePerson>;

@@ -30,6 +30,15 @@ export const errorPlugin: FastifyPluginAsync = async (server, _options) => {
 
 const getStatusCode = (code: string) => {
   switch (code) {
+    case ERROR_CODES.INVALID_PERSON_ERROR ||
+      ERROR_CODES.INVALID_PROFILE_PICTURE_ERROR ||
+      ERROR_CODES.INVALID_PERSON_ERROR ||
+      ERROR_CODES.INVALID_VIDEO_ERROR:
+      return 400;
+    case ERROR_CODES.UNAUTHENTICATED_ERROR:
+      return 403;
+    case ERROR_CODES.UNAUTHORIZED_ERROR:
+      return 401;
     case ERROR_CODES.EXTERNAL_SERVICE_ERROR:
       return 503;
     default:

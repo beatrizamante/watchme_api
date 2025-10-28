@@ -3,34 +3,22 @@ import {
   UnauthorizedError,
 } from "../../domain/applicationErrors.ts";
 import { UserModel } from "../../infrastructure/database/models/UserModel.ts";
-import { Roles } from "../../interfaces/roles.ts";
+import { UserSerializer } from "../../interface/serializer/serializeUser.ts";
 
 type FindUser = {
-  id?: number;
-  username?: string;
-  email?: string;
+  id: number;
   user_id: number;
 };
 
-export const findUser = async ({ id, username, email, user_id }: FindUser) => {
+export const findUser = async ({ id, user_id }: FindUser) => {
   const user = await UserModel.query().findById(user_id);
 
-  if (!user || (!user.isAdmin() && user_id !== user.id))
+  if (!user || (!user.isAdmin() && !user.isUser(id)))
     throw new UnauthorizedError({
       message: "User cannot access this resource",
     });
 
-  const query = UserModel.query();
-
-  if (id !== undefined) {
-    query.where("id", id);
-  } else if (username !== undefined) {
-    query.where("username", username);
-  } else if (email !== undefined) {
-    query.where("email", email);
-  } else {
-    throw new InvalidUserError({ message: "No filter provided" });
-  }
+  const query = UserModel.query().where("id", id);
 
   const foundUser = await query.first();
 
@@ -38,5 +26,5 @@ export const findUser = async ({ id, username, email, user_id }: FindUser) => {
     throw new InvalidUserError({ message: "This user doesn't exist" });
   }
 
-  return foundUser;
+  return UserSerializer.serialize(foundUser);
 };
