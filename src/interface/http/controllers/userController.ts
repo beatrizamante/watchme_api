@@ -18,41 +18,34 @@ type CreateUserDTO = {
 
 export const userController = {
   create: async (request: FastifyRequest, reply: FastifyReply) => {
-    try {
-      const parts = request.parts();
-      const { bodyData, file, originalFilename } = await multiformFilter(parts);
+    const parts = request.parts();
+    const { bodyData, file, originalFilename } = await multiformFilter(parts);
 
-      const parseResult = CreateUserInput.safeParse(bodyData);
-      const { createUser } = createRequestScopedContainer();
+    const parseResult = CreateUserInput.safeParse(bodyData);
+    const { createUser } = createRequestScopedContainer();
 
-      if (!parseResult.success) {
-        return reply.status(400).send({
-          error: "Invalid input",
-          details: parseResult.error.issues,
-        });
-      }
-
-      const { username, email, password } = parseResult.data;
-
-      const result = await createUser({
-        user: {
-          username,
-          email,
-          password,
-          role: Roles.USER,
-          active: true,
-        },
-        file: file || Buffer.from(""),
-        originalFilename,
-      });
-
-      return reply.status(201).send(result);
-    } catch (error) {
-      return reply.status(500).send({
-        error: "Internal server error",
-        message: error instanceof Error ? error.message : "Unknown error",
+    if (!parseResult.success) {
+      return reply.status(400).send({
+        error: "Invalid input",
+        details: parseResult.error.issues,
       });
     }
+
+    const { username, email, password } = parseResult.data;
+
+    const result = await createUser({
+      user: {
+        username,
+        email,
+        password,
+        role: Roles.USER,
+        active: true,
+      },
+      file: file || Buffer.from(""),
+      originalFilename,
+    });
+
+    return reply.status(201).send(JSON.stringify(result));
   },
 
   update: async (request: FastifyRequest, reply: FastifyReply) => {
@@ -109,7 +102,7 @@ export const userController = {
         originalFilename,
       });
 
-      return reply.status(200).send(result);
+      return reply.status(200).send(JSON.stringify(result));
     } catch (error) {
       return reply.status(500).send({
         error: "Internal server error",
