@@ -5,8 +5,8 @@ import {
 import { Video } from "../../../domain/Video.ts";
 import { VideoInterface } from "../../../domain/VideoRepository.ts";
 import { VideoModel } from "../../../infrastructure/database/models/VideoModel.ts";
+import { managePath } from "../../../infrastructure/systemfile/managePath.ts";
 import { VideoSerializer } from "../../../interface/serializer/serializeVideo.ts";
-import { managePath } from "../../_lib/managePath.ts";
 
 type Dependencies = {
   videoRepository: VideoInterface;
