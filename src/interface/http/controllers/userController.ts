@@ -49,66 +49,59 @@ export const userController = {
   },
 
   update: async (request: FastifyRequest, reply: FastifyReply) => {
-    try {
-      // biome-ignore lint/style/noNonNullAssertion: "The user is always being checked through an addHook at the request level"
-      const userId = request.userId!;
-      const parts = request.parts();
-      const { bodyData, file, originalFilename } = await multiformFilter(parts);
-      const paramsResult = UpdateUserParams.safeParse(request.query);
+    // biome-ignore lint/style/noNonNullAssertion: "The user is always being checked through an addHook at the request level"
+    const userId = request.userId!;
+    const parts = request.parts();
+    const { bodyData, file, originalFilename } = await multiformFilter(parts);
+    const paramsResult = UpdateUserParams.safeParse(request.query);
 
-      if (!paramsResult.success) {
-        return reply.status(400).send({
-          error: "Invalid user identifier",
-          details: paramsResult.error.issues,
-        });
-      }
-
-      const parseResult = UpdateUserInput.safeParse(bodyData);
-      const { updateUser } = createRequestScopedContainer();
-
-      if (!parseResult.success) {
-        return reply.status(400).send({
-          error: "Invalid input",
-          details: parseResult.error.issues,
-        });
-      }
-
-      const currentUser = await findUser({
-        id: paramsResult.data.id,
-        user_id: userId,
-      });
-
-      const { username, email, password, role, active } = parseResult.data;
-
-      const updateData: Partial<CreateUserDTO> = {
-        id: paramsResult.data.id,
-        username: username ?? currentUser.username,
-        email: email ?? currentUser.email,
-        role: (role ?? currentUser.role) as Roles,
-        active: active ?? currentUser.active,
-      };
-
-      if (password) {
-        updateData.password = password;
-      } else {
-        updateData.password = "dummy_password_for_validation";
-      }
-
-      const userToUpdate = new User(updateData as CreateUserDTO);
-
-      const result = await updateUser({
-        user: userToUpdate,
-        file,
-        originalFilename,
-      });
-
-      return reply.status(200).send(JSON.stringify(result));
-    } catch (error) {
-      return reply.status(500).send({
-        error: "Internal server error",
-        message: error instanceof Error ? error.message : "Unknown error",
+    if (!paramsResult.success) {
+      return reply.status(400).send({
+        error: "Invalid user identifier",
+        details: paramsResult.error.issues,
       });
     }
+
+    const parseResult = UpdateUserInput.safeParse(bodyData);
+    const { updateUser } = createRequestScopedContainer();
+
+    if (!parseResult.success) {
+      return reply.status(400).send({
+        error: "Invalid input",
+        details: parseResult.error.issues,
+      });
+    }
+
+    const currentUser = await findUser({
+      id: paramsResult.data.id,
+      user_id: userId,
+    });
+
+    const { username, email, password, role, active } = parseResult.data;
+
+    const updateData: Partial<CreateUserDTO> = {
+      id: paramsResult.data.id,
+      username: username ?? currentUser.username,
+      email: email ?? currentUser.email,
+      role: (role ?? currentUser.role) as Roles,
+      active: active ?? currentUser.active,
+    };
+
+    if (password) {
+      updateData.password = password;
+    } else {
+      updateData.password = "dummy_password_for_validation";
+    }
+
+    const userToUpdate = new User(updateData as CreateUserDTO);
+
+    const result = await updateUser({
+      user: userToUpdate,
+      file,
+      originalFilename,
+    });
+
+    return reply.status(200).send(JSON.stringify(result));
   },
 
   delete: async (request: FastifyRequest, reply: FastifyReply) => {
