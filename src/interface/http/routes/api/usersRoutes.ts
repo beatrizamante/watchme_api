@@ -11,6 +11,55 @@ export function usersApiRoutes(fastify: FastifyInstance) {
       schema: {
         summary: "List all users",
         tags: ["Users"],
+        querystring: {
+          type: "object",
+          properties: {
+            active: { type: "boolean" },
+          },
+        },
+        response: {
+          302: {
+            description: "List of users",
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                id: { type: "number" },
+                username: { type: "string" },
+                email: { type: "string" },
+                role: { type: "string", enum: ["ADMIN", "USER"] },
+                active: { type: "boolean" },
+              },
+            },
+            example: [
+              {
+                id: 1,
+                username: "johndoe",
+                email: "john@example.com",
+                role: "USER",
+                active: true,
+              },
+              {
+                id: 2,
+                username: "janedoe",
+                email: "jane@example.com",
+                role: "USER",
+                active: true,
+              },
+            ],
+          },
+          400: {
+            description: "Validation error",
+            type: "object",
+            properties: {
+              error: { type: "string" },
+              details: { type: "array" },
+            },
+            example: {
+              error: "Invalid input: active must be a boolean",
+            },
+          },
+        },
       },
     },
     userController.list
@@ -23,10 +72,41 @@ export function usersApiRoutes(fastify: FastifyInstance) {
         summary: "Find a specific user",
         tags: ["Users"],
         querystring: {
+          type: "object",
           properties: {
             id: { type: "number" },
-            username: { type: "string" },
-            email: { type: "string" },
+          },
+          required: ["id"],
+        },
+        response: {
+          302: {
+            description: "An user object",
+            type: "object",
+            properties: {
+              id: { type: "number" },
+              username: { type: "string" },
+              email: { type: "string" },
+              role: { type: "string", enum: ["ADMIN", "USER"] },
+              active: { type: "boolean" },
+            },
+            example: {
+              id: 1,
+              username: "johndoe",
+              email: "john@example.com",
+              role: "USER",
+              active: true,
+            },
+          },
+          400: {
+            description: "Validation error",
+            type: "object",
+            properties: {
+              error: { type: "string" },
+              details: { type: "array" },
+            },
+            example: {
+              error: "Invalid input: id must be a number",
+            },
           },
         },
       },
@@ -41,8 +121,26 @@ export function usersApiRoutes(fastify: FastifyInstance) {
         summary: "Delete the picture of a user",
         tags: ["Users"],
         querystring: {
+          type: "object",
           properties: {
             id: { type: "number" },
+          },
+          required: ["id"],
+        },
+        response: {
+          204: {
+            description: "Successfully deleted",
+          },
+          400: {
+            description: "Validation error",
+            type: "object",
+            properties: {
+              error: { type: "string" },
+              details: { type: "array" },
+            },
+            example: {
+              error: "Invalid input: id must be a number",
+            },
           },
         },
       },
@@ -77,13 +175,37 @@ export function usersApiRoutes(fastify: FastifyInstance) {
             description: "User created successfully",
             type: "object",
             properties: {
-              validPicture: {
+              user: {
                 type: "object",
-                description: "Created profile picture details",
+                properties: {
+                  id: { type: "number" },
+                  username: { type: "string" },
+                  email: { type: "string" },
+                  role: { type: "string", enum: ["ADMIN", "USER"] },
+                  active: { type: "boolean" },
+                },
               },
-              newUser: {
-                type: "object",
-                description: "Created user details",
+              profilePicture: {
+                type: ["object", "null"],
+                properties: {
+                  id: { type: "number" },
+                  user_id: { type: "number" },
+                  path: { type: "string" },
+                },
+              },
+            },
+            example: {
+              user: {
+                id: 1,
+                username: "johndoe",
+                email: "john@example.com",
+                role: "USER",
+                active: true,
+              },
+              profilePicture: {
+                id: 1,
+                user_id: 1,
+                path: "/path/to/image/filename.extension",
               },
             },
           },
@@ -94,6 +216,14 @@ export function usersApiRoutes(fastify: FastifyInstance) {
               error: { type: "string" },
               details: { type: "array" },
             },
+            example: [
+              {
+                error: "Invalid input: email malformatted",
+              },
+              {
+                error: "Invalid input: password must be greater than 6",
+              },
+            ],
           },
         },
       },
@@ -108,9 +238,11 @@ export function usersApiRoutes(fastify: FastifyInstance) {
         summary: "Update a user",
         tags: ["Users"],
         querystring: {
+          type: "object",
           properties: {
             id: { type: "number" },
           },
+          required: ["id"],
         },
         consumes: ["multipart/form-data"],
         description: `Update user account information. All fields are optional - only provided fields will be updated.
@@ -133,13 +265,37 @@ export function usersApiRoutes(fastify: FastifyInstance) {
             description: "User updated successfully",
             type: "object",
             properties: {
-              validPicture: {
+              user: {
                 type: "object",
-                description: "Profile picture details (existing or updated)",
+                properties: {
+                  id: { type: "number" },
+                  username: { type: "string" },
+                  email: { type: "string" },
+                  role: { type: "string", enum: ["ADMIN", "USER"] },
+                  active: { type: "boolean" },
+                },
               },
-              updatedUser: {
-                type: "object",
-                description: "Updated user details",
+              profilePicture: {
+                type: ["object", "null"],
+                properties: {
+                  id: { type: "number" },
+                  user_id: { type: "number" },
+                  path: { type: "string" },
+                },
+              },
+            },
+            example: {
+              user: {
+                id: 1,
+                username: "johndoe",
+                email: "newemail@example.com",
+                role: "USER",
+                active: true,
+              },
+              profilePicture: {
+                id: 1,
+                user_id: 1,
+                path: "/path/to/image/filename.extension",
               },
             },
           },
@@ -150,6 +306,11 @@ export function usersApiRoutes(fastify: FastifyInstance) {
               error: { type: "string" },
               details: { type: "array" },
             },
+            example: [
+              {
+                error: "Invalid input: Role must be either USER or ADMIN",
+              },
+            ],
           },
         },
       },

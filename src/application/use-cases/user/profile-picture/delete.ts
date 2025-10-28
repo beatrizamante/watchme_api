@@ -1,7 +1,7 @@
 import { InvalidProfilePictureError } from "../../../../domain/applicationErrors.ts";
 import { ProfilePictureInterface } from "../../../../domain/ProfilePictureRepository.ts";
 import { ProfilePictureModel } from "../../../../infrastructure/database/models/ProfilePictureModel.ts";
-import { managePath } from "../../../_lib/managePath.ts";
+import { managePath } from "../../../../infrastructure/systemfile/managePath.ts";
 
 type Dependencies = {
   profilePictureRepository: ProfilePictureInterface;

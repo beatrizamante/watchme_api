@@ -2,6 +2,9 @@ import { FastifyReply, FastifyRequest } from "fastify";
 import z from "zod/v4";
 import { findVideo } from "../../../application/queries/findVideo.ts";
 import { findVideos } from "../../../application/queries/findVideos.ts";
+import { InvalidVideoError } from "../../../domain/applicationErrors.ts";
+import { fileSizePolicy } from "../../../policies/fileSizePolicy.ts";
+import { videoPolicy } from "../../../policies/videoPolicy.ts";
 import { createRequestScopedContainer } from "../_lib/index.ts";
 import { multiformFilter } from "../_lib/multiformFilter.ts";
 
@@ -13,15 +16,20 @@ export const videoController = {
     const { file, originalFilename } = await multiformFilter(parts);
     const { createVideo } = createRequestScopedContainer();
 
+    if (!file || !originalFilename) {
+      throw new InvalidVideoError({ message: "You must upload a video" });
+    }
+
+    fileSizePolicy({ file });
+    videoPolicy({ originalFilename });
+
     const result = await createVideo({
-      // biome-ignore lint/style/noNonNullAssertion: "It's obligatory to have a videofile to create a video"
-      video: file!,
+      video: file,
       userId,
-      // biome-ignore lint/style/noNonNullAssertion: "It's obligatory to have a videofile to create a video"
-      originalFilename: originalFilename!,
+      originalFilename,
     });
 
-    return reply.status(201).send(JSON.stringify(result));
+    return reply.status(201).send(result);
   },
 
   delete: async (request: FastifyRequest, reply: FastifyReply) => {
@@ -42,7 +50,7 @@ export const videoController = {
       userId,
     });
 
-    return reply.status(200).send(result);
+    return reply.status(203).send(result);
   },
 
   list: async (request: FastifyRequest, reply: FastifyReply) => {
