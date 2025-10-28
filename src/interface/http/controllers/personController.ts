@@ -60,6 +60,7 @@ export const personController = {
 
     return reply.status(201).send(result);
   },
+
   delete: async (request: FastifyRequest, reply: FastifyReply) => {
     // biome-ignore lint/style/noNonNullAssertion: "The user is always being checked through an addHook at the request level"
     const userId = request.userId!;
@@ -128,17 +129,15 @@ export const personController = {
       });
     }
 
-    // For person detection in video, send to detection endpoint
     const findPersonResponse = await aiApiClient.post("/find_person_in_video", {
       person: {
         id: person.id,
         name: person.name,
-        embedding: person.embedding.toString("base64"), // Convert Buffer to base64 for API
+        embedding: person.embedding.toString("base64"),
       },
       video: {
         id: video.id,
         path: video.path,
-        // Add other video fields your AI needs
       },
     });
 
@@ -146,10 +145,7 @@ export const personController = {
       throw new ExternalServiceError({ message: "Cannot process request " });
     }
 
-    // The AI returns JSON with matches array containing bbox and distance
-    // Example: { matches: [{ bbox: [x, y, w, h], distance: 0.5 }] }
     const detectionResults = findPersonResponse.data;
-
     return reply.status(200).send({
       person,
       video,

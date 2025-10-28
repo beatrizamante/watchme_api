@@ -56,25 +56,17 @@ export function peopleApiRoutes(fastify: FastifyInstance) {
     {
       schema: {
         summary: "Create new person's embedding",
-        tags: ["Person"],
+        tags: ["People"],
         consumes: ["multipart/form-data"],
-        body: {
-          type: "object",
-          required: ["name"],
-          properties: {
-            name: { type: "string" },
-            picture: {
-              type: "string",
-              format: "binary",
-              description: "Person picture file",
-            },
-          },
-        },
-        examples: [
-          {
-            name: "Beatriz",
-          },
-        ],
+        description: `Create a new user account with optional profile picture.
+
+**Required form fields:**
+- name (text): Person's name for annotation
+- file (file): Person's full body picture (JPEG, PNG, etc.)
+
+**Example multipart form:**
+- name: "Roni Fabricio"
+- file: [upload file]`,
       },
     },
     personController.create

@@ -41,6 +41,7 @@ export function usersApiRoutes(fastify: FastifyInstance) {
         summary: "Delete the picture of a user",
         tags: ["Users"],
         querystring: {
+          type: "object",
           properties: {
             id: { type: "number" },
           },
