@@ -32,7 +32,7 @@ export const authentication = {
 
   logout: async (__: FastifyRequest, reply: FastifyReply) => {
     reply.clearCookie("token", { path: "/" });
-    return reply.send({ message: "Logout" });
+    return reply.send({ message: "Logged Out" });
   },
 
   isAuthenticated: async (request: FastifyRequest, _: FastifyReply) => {

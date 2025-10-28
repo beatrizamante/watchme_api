@@ -1,7 +1,8 @@
 import axios from "axios";
+import { config } from "../../../config.ts";
 
 export const aiApiClient = axios.create({
-  baseURL: "http://localhost:5000",
+  baseURL: config.http.apiBaseUrl,
   timeout: 10000,
   headers: {
     "Content-Type": "application/json",
