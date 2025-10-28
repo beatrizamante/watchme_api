@@ -1,5 +1,6 @@
 import { Person } from "../../../domain/Person.ts";
 import { PersonInterface } from "../../../domain/PersonRepository.ts";
+import { PersonSerializer } from "../../../interface/serializer/serializePerson.ts";
 
 type Dependencies = {
   personRepository: PersonInterface;
@@ -14,7 +15,8 @@ export const makeCreatePerson =
   async ({ person }: CreatePersonParams) => {
     const validPerson = new Person(person);
 
-    return await personRepository.create(validPerson);
+    const newPerson = await personRepository.create(validPerson);
+    return PersonSerializer.serialize(newPerson);
   };
 
 export type CreatePerson = ReturnType<typeof makeCreatePerson>;

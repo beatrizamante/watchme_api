@@ -34,6 +34,7 @@ export const managePath = {
       });
     }
   },
+
   delete: async (imagePath: string) => {
     try {
       if (fs.existsSync(imagePath)) {

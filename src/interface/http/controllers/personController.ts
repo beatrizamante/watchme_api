@@ -9,6 +9,7 @@ import {
 } from "../../../domain/applicationErrors.ts";
 import { aiApiClient } from "../_lib/client.ts";
 import { createRequestScopedContainer } from "../_lib/index.ts";
+import { multiformFilter } from "../_lib/multiformFilter.ts";
 
 export const personController = {
   create: async (request: FastifyRequest, reply: FastifyReply) => {
@@ -16,16 +17,7 @@ export const personController = {
     const userId = request.userId!;
 
     const parts = request.parts();
-    let file: Buffer | undefined;
-    const bodyData: Record<string, unknown> = {};
-
-    for await (const part of parts) {
-      if (part.type === "file") {
-        file = await part.toBuffer();
-      } else {
-        bodyData[part.fieldname] = part.value;
-      }
-    }
+    const { bodyData, file } = await multiformFilter(parts);
 
     const parseResult = CreatePersonInput.safeParse(bodyData);
     const { createPerson } = createRequestScopedContainer();
