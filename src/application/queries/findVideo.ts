@@ -4,6 +4,7 @@ import {
 } from "../../domain/applicationErrors.ts";
 import { UserModel } from "../../infrastructure/database/models/UserModel.ts";
 import { VideoModel } from "../../infrastructure/database/models/VideoModel.ts";
+import { VideoSerializer } from "../../interface/serializer/serializeVideo.ts";
 
 export const findVideo = async (id: number, user_id: number) => {
   try {
@@ -20,12 +21,12 @@ export const findVideo = async (id: number, user_id: number) => {
       return video;
     }
 
-    const video = VideoModel.query().findOne({ id, user_id });
+    const video = await VideoModel.query().findOne({ id, user_id });
 
     if (!video)
       throw new InvalidVideoError({ message: "This video doesn't exist" });
 
-    return video;
+    return VideoSerializer.serialize(video);
   } catch (error) {
     throw new DatabaseError({
       message: `There was an error retrieving this video: ${error}`,
