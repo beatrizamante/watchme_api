@@ -3,6 +3,8 @@ import { ProfilePictureInterface } from "../../../domain/ProfilePictureRepositor
 import { User } from "../../../domain/User.ts";
 import { UserInterface } from "../../../domain/UserRepository.ts";
 import { UserModel } from "../../../infrastructure/database/models/UserModel.ts";
+import { ProfilePictureSerializer } from "../../../interface/serializer/serializeProfilePicture.ts";
+import { UserSerializer } from "../../../interface/serializer/serializeUser.ts";
 import { UpsertPicture } from "./profile-picture/upsert.ts";
 
 type Dependencies = {
@@ -43,7 +45,12 @@ export const makeUpdateUser =
 
       await trx.commit();
 
-      return { validPicture, updatedUser };
+      return {
+        user: UserSerializer.serialize(updatedUser),
+        profilePicture: validPicture
+          ? ProfilePictureSerializer.serialize(validPicture)
+          : null,
+      };
     } catch (error) {
       await trx.rollback();
 

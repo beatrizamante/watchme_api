@@ -9,7 +9,7 @@ export const videoController = {
     // biome-ignore lint/style/noNonNullAssertion: "The user is always being checked through an addHook at the request level"
     const userId = request.userId!;
     const video: Buffer = (request.body as { file: Buffer }).file;
-    const { createVideo } = createRequestScopedContainer(request);
+    const { createVideo } = createRequestScopedContainer();
 
     const result = await createVideo({
       video,
@@ -22,7 +22,7 @@ export const videoController = {
     // biome-ignore lint/style/noNonNullAssertion: "The user is always being checked through an addHook at the request level"
     const userId = request.userId!;
     const parseResult = DeleteVideoInput.safeParse(request.query);
-    const { deleteVideo } = createRequestScopedContainer(request);
+    const { deleteVideo } = createRequestScopedContainer();
 
     if (!parseResult.success) {
       return reply.status(400).send({

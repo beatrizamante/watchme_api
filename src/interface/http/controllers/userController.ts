@@ -5,6 +5,7 @@ import { findUsers } from "../../../application/queries/findUsers.ts";
 import { User } from "../../../domain/User.ts";
 import { Roles } from "../../../interfaces/roles.ts";
 import { createRequestScopedContainer } from "../_lib/index.ts";
+import { multiformFilter } from "../_lib/multiformFilter.ts";
 
 type CreateUserDTO = {
   id?: number;
@@ -19,18 +20,7 @@ export const userController = {
   create: async (request: FastifyRequest, reply: FastifyReply) => {
     try {
       const parts = request.parts();
-      let file: Buffer | undefined;
-      let originalFilename: string | undefined;
-      const bodyData: Record<string, unknown> = {};
-
-      for await (const part of parts) {
-        if (part.type === "file") {
-          file = await part.toBuffer();
-          originalFilename = part.filename;
-        } else {
-          bodyData[part.fieldname] = part.value;
-        }
-      }
+      const { bodyData, file, originalFilename } = await multiformFilter(parts);
 
       const parseResult = CreateUserInput.safeParse(bodyData);
       const { createUser } = createRequestScopedContainer();
@@ -70,27 +60,14 @@ export const userController = {
       // biome-ignore lint/style/noNonNullAssertion: "The user is always being checked through an addHook at the request level"
       const userId = request.userId!;
       const parts = request.parts();
-      let file: Buffer | undefined;
-      let originalFilename: string | undefined;
-      const bodyData: Record<string, unknown> = {};
-
+      const { bodyData, file, originalFilename } = await multiformFilter(parts);
       const paramsResult = UpdateUserParams.safeParse(request.query);
+
       if (!paramsResult.success) {
         return reply.status(400).send({
           error: "Invalid user identifier",
           details: paramsResult.error.issues,
         });
-      }
-
-      for await (const part of parts) {
-        if (part.type === "file") {
-          file = await part.toBuffer();
-          originalFilename = part.filename;
-        } else {
-          if (part.value && part.value.toString().trim() !== "") {
-            bodyData[part.fieldname] = part.value;
-          }
-        }
       }
 
       const parseResult = UpdateUserInput.safeParse(bodyData);
