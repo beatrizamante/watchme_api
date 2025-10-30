@@ -99,9 +99,6 @@ Visit `http://localhost:3000/docs` for interactive API documentation.
 ## Environment Variables
 See `.env.example` for all required variables (database, JWT secret, etc).
 
-## Contributing
-Pull requests and issues are welcome! See [GitHub Issues](https://github.com/beatrizamante/watchme_api_backend/issues).
-
 ## License
 ISC
 
