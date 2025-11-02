@@ -5,6 +5,5 @@ export type ActiveConnection = {
   pythonSocket?: WebSocket | null;
   userId: number;
   personId: number;
-  videoId: number;
   sessionId: string;
 };

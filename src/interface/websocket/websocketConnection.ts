@@ -1,6 +1,5 @@
 import WebSocket from "ws";
 import { findPerson } from "../../application/queries/findPerson.ts";
-import { findVideo } from "../../application/queries/findVideo.ts";
 import { ActiveConnection } from "../../types/activeConnection.ts";
 import { cleanUp } from "./cleanUp.ts";
 import { connectToPythonService } from "./createPythonService.ts";
@@ -10,7 +9,6 @@ type ConnectionParams = {
   socket: WebSocket;
   userId: number;
   personId: number;
-  videoId: number;
 };
 
 const activeConnections = new Map<string, ActiveConnection>();
@@ -19,19 +17,17 @@ export const handleConnection = async ({
   socket,
   userId,
   personId,
-  videoId,
 }: ConnectionParams) => {
   const sessionId = crypto.randomUUID();
 
   try {
     const person = await findPerson(personId, userId);
-    const video = await findVideo(videoId, userId);
 
-    if (!person || !video) {
+    if (!person) {
       socket.send(
         JSON.stringify({
           type: "error",
-          message: "Person or video not found",
+          message: "Person not found",
         })
       );
       socket.close();
@@ -43,13 +39,12 @@ export const handleConnection = async ({
       pythonSocket: null,
       userId,
       personId,
-      videoId,
       sessionId,
     };
 
     activeConnections.set(sessionId, connection);
 
-    await connectToPythonService({ connection, person, video });
+    await connectToPythonService({ connection, person });
 
     socket.on("message", (data) => {
       handleClientMessage({

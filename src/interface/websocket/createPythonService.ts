@@ -1,18 +1,15 @@
 import WebSocket from "ws";
 import { Person } from "../../domain/Person.ts";
-import { Video } from "../../domain/Video.ts";
 import { ActiveConnection } from "../../types/activeConnection.ts";
 
 type ConnectionToPyServiceParams = {
   connection: ActiveConnection;
   person: Person;
-  video: Video;
 };
 
 export const connectToPythonService = async ({
   connection,
   person,
-  video,
 }: ConnectionToPyServiceParams) => {
   try {
     const pythonSocket = new WebSocket(
@@ -33,7 +30,6 @@ export const connectToPythonService = async ({
             ...person,
             embedding: person.embedding.toString("base64"),
           },
-          video,
           settings: {
             fps_limit: 10,
             confidence_threshold: 0.8,
