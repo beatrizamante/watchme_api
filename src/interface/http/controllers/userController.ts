@@ -1,8 +1,8 @@
 import { FastifyReply, FastifyRequest } from "fastify";
 import z from "zod/v4";
-import { findUser } from "../../../application/queries/findUser.ts";
-import { findUsers } from "../../../application/queries/findUsers.ts";
-import { User } from "../../../domain/User.ts";
+import { findUser } from "../../../application/queries/user/findUser.ts";
+import { findUsers } from "../../../application/queries/user/findUsers.ts";
+import { User } from "../../../domain/user/User.ts";
 import { Roles } from "../../../interfaces/roles.ts";
 import { fileSizePolicy } from "../../../policies/fileSizePolicy.ts";
 import { imagePolicy } from "../../../policies/imagePolicy.ts";
@@ -20,16 +20,8 @@ type CreateUserDTO = {
 
 export const userController = {
   create: async (request: FastifyRequest, reply: FastifyReply) => {
-    const parts = request.parts();
-    const { bodyData, file, originalFilename } = await multiformFilter(parts);
-
-    const parseResult = CreateUserInput.safeParse(bodyData);
+    const parseResult = CreateUserInput.safeParse(request.body);
     const { createUser } = createRequestScopedContainer();
-
-    if (file && originalFilename) {
-      fileSizePolicy({ file });
-      imagePolicy({ originalFilename });
-    }
 
     if (!parseResult.success) {
       return reply.status(400).send({
@@ -48,8 +40,6 @@ export const userController = {
         role: Roles.USER,
         active: true,
       },
-      file: file || Buffer.from(""),
-      originalFilename,
     });
 
     return reply.status(201).send(JSON.stringify(result));
@@ -193,6 +183,7 @@ const UpdateUserInput = z.object({
   password: z.string().min(6).optional(),
   role: z.enum(["ADMIN", "USER"]).optional(),
   active: z.coerce.boolean().optional(),
+  file: z.any(),
 });
 
 const UpdateUserParams = z.object({

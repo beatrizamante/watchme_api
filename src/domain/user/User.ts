@@ -1,5 +1,5 @@
-import { Roles } from "../interfaces/roles.ts";
-import { InvalidUserError } from "./applicationErrors.ts";
+import { Roles } from "../../interfaces/roles.ts";
+import { InvalidUserError } from "../applicationErrors.ts";
 
 type CreateUserDTO = {
   id?: number;

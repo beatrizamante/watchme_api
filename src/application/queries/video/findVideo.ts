@@ -1,10 +1,10 @@
 import {
   DatabaseError,
   InvalidVideoError,
-} from "../../domain/applicationErrors.ts";
-import { UserModel } from "../../infrastructure/database/models/UserModel.ts";
-import { VideoModel } from "../../infrastructure/database/models/VideoModel.ts";
-import { VideoSerializer } from "../../interface/serializer/serializeVideo.ts";
+} from "../../../domain/applicationErrors.ts";
+import { UserModel } from "../../../infrastructure/database/models/UserModel.ts";
+import { VideoModel } from "../../../infrastructure/database/models/VideoModel.ts";
+import { VideoSerializer } from "../../../interface/serializer/serializeVideo.ts";
 
 export const findVideo = async (id: number, user_id: number) => {
   try {

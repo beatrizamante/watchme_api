@@ -1,5 +1,5 @@
 import { Transaction } from "objection";
-import { ProfilePictureModel } from "../infrastructure/database/models/ProfilePictureModel.ts";
+import { ProfilePictureModel } from "../../infrastructure/database/models/ProfilePictureModel.ts";
 import { ProfilePicture } from "./ProfilePicture.ts";
 
 export interface ProfilePictureInterface {

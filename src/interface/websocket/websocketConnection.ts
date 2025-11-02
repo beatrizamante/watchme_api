@@ -1,5 +1,5 @@
 import WebSocket from "ws";
-import { findPerson } from "../../application/queries/findPerson.ts";
+import { findPerson } from "../../application/queries/person/findPerson.ts";
 import { ActiveConnection } from "../../types/activeConnection.ts";
 import { cleanUp } from "./cleanUp.ts";
 import { connectToPythonService } from "./createPythonService.ts";

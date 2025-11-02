@@ -61,6 +61,8 @@ export function authRoute(fastify: FastifyInstance) {
     authentication.logout
   );
 
+  fastify.post("/auth/refresh", {}, authentication.isAuthenticated);
+
   fastify.post(
     "/register",
     {

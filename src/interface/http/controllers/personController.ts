@@ -1,8 +1,8 @@
 import { FastifyReply, FastifyRequest } from "fastify";
 import { z } from "zod";
-import { findPeople } from "../../../application/queries/findPeople.ts";
-import { findPerson } from "../../../application/queries/findPerson.ts";
-import { findVideo } from "../../../application/queries/findVideo.ts";
+import { findPeople } from "../../../application/queries/person/findPeople.ts";
+import { findPerson } from "../../../application/queries/person/findPerson.ts";
+import { findVideo } from "../../../application/queries/video/findVideo.ts";
 import {
   ExternalServiceError,
   InvalidPersonError,

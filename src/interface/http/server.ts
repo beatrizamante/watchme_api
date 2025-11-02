@@ -15,7 +15,7 @@ import { websocketRoutes } from "./routes/api/websocketRoutes.ts";
 import { authRoute } from "./routes/authRoute.ts";
 
 const makeServer = async () => {
-  const server = Fastify({ logger: config.http.logger[config.env] });
+  const server = Fastify({ logger: config.logger[config.env] });
 
   server.register(cors, {
     origin: true,

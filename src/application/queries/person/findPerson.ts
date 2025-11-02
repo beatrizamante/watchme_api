@@ -2,10 +2,10 @@ import {
   DatabaseError,
   InvalidPersonError,
   InvalidUserError,
-} from "../../domain/applicationErrors.ts";
-import { PersonModel } from "../../infrastructure/database/models/PersonModel.ts";
-import { UserModel } from "../../infrastructure/database/models/UserModel.ts";
-import { PersonSerializer } from "../../interface/serializer/serializePerson.ts";
+} from "../../../domain/applicationErrors.ts";
+import { PersonModel } from "../../../infrastructure/database/models/PersonModel.ts";
+import { UserModel } from "../../../infrastructure/database/models/UserModel.ts";
+import { PersonSerializer } from "../../../interface/serializer/serializePerson.ts";
 
 export const findPerson = async (id: number, user_id: number) => {
   try {

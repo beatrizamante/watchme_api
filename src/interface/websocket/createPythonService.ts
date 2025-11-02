@@ -1,5 +1,5 @@
 import WebSocket from "ws";
-import { Person } from "../../domain/Person.ts";
+import { Person } from "../../domain/person/Person.ts";
 import { ActiveConnection } from "../../types/activeConnection.ts";
 
 type ConnectionToPyServiceParams = {

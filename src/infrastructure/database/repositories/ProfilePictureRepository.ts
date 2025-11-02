@@ -1,7 +1,7 @@
 import { Transaction } from "objection";
 import { DatabaseError } from "../../../domain/applicationErrors.ts";
-import { ProfilePicture } from "../../../domain/ProfilePicture.ts";
-import { ProfilePictureInterface } from "../../../domain/ProfilePictureRepository.ts";
+import { ProfilePicture } from "../../../domain/user/ProfilePicture.ts";
+import { ProfilePictureInterface } from "../../../domain/user/ProfilePictureRepository.ts";
 import { ProfilePictureModel } from "../models/ProfilePictureModel.ts";
 
 export class ProfilePictureRepository implements ProfilePictureInterface {

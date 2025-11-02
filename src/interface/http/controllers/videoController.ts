@@ -1,7 +1,7 @@
 import { FastifyReply, FastifyRequest } from "fastify";
 import z from "zod/v4";
-import { findVideo } from "../../../application/queries/findVideo.ts";
-import { findVideos } from "../../../application/queries/findVideos.ts";
+import { findVideo } from "../../../application/queries/video/findVideo.ts";
+import { findVideos } from "../../../application/queries/video/findVideos.ts";
 import { InvalidVideoError } from "../../../domain/applicationErrors.ts";
 import { fileSizePolicy } from "../../../policies/fileSizePolicy.ts";
 import { videoPolicy } from "../../../policies/videoPolicy.ts";

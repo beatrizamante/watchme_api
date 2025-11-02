@@ -30,11 +30,6 @@ const http = {
   host: Env.string("HOST", "0.0.0.0"),
   baseUrl: Env.string("SERVER_BASE_URL", "http://localhost:3000"),
   apiBaseUrl: Env.string("AI_BASE_URL", "http://localhost:5000"),
-  logger: {
-    development: logger,
-    production: true,
-    test: false,
-  },
 };
 
 const db = {

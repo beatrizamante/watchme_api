@@ -1,5 +1,5 @@
-import { Person } from "../../../domain/Person.ts";
 import { PersonInterface } from "../../../domain/PersonRepository.ts";
+import { Person } from "../../../domain/person/Person.ts";
 import { PersonSerializer } from "../../../interface/serializer/serializePerson.ts";
 
 type Dependencies = {

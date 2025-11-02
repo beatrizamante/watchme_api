@@ -1,4 +1,4 @@
-import { InvalidProfilePictureError } from "./applicationErrors.ts";
+import { InvalidProfilePictureError } from "../applicationErrors.ts";
 
 type CreateProfilePictureDTO = {
   id?: number;

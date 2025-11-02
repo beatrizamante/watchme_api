@@ -33,9 +33,9 @@ import {
 } from "../application/use-cases/video/delete.ts";
 import { Config, config } from "../config.ts";
 import { PersonInterface } from "../domain/PersonRepository.ts";
-import { ProfilePictureInterface } from "../domain/ProfilePictureRepository.ts";
-import { UserInterface } from "../domain/UserRepository.ts";
-import { VideoInterface } from "../domain/VideoRepository.ts";
+import { ProfilePictureInterface } from "../domain/user/ProfilePictureRepository.ts";
+import { UserInterface } from "../domain/user/UserRepository.ts";
+import { VideoInterface } from "../domain/video/VideoRepository.ts";
 import { PersonRepository } from "../infrastructure/database/repositories/PersonRepository.ts";
 import { ProfilePictureRepository } from "../infrastructure/database/repositories/ProfilePictureRepository.ts";
 import { UserRepository } from "../infrastructure/database/repositories/UserRepository.ts";

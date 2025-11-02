@@ -27,7 +27,10 @@ export const authentication = {
       sameSite: "none",
     });
 
-    return reply.status(201).send({ message: "Login successful" });
+    return reply.status(201).send({
+      message: "Login successful",
+      user: { username: user.username, role: user.role },
+    });
   },
 
   logout: async (__: FastifyRequest, reply: FastifyReply) => {
