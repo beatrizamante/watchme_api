@@ -19,7 +19,7 @@ const makeServer = async () => {
 
   server.register(cors, {
     origin: true,
-    credentials: false,
+    credentials: true,
   });
 
   server.register(fastifyCookie);
@@ -30,6 +30,7 @@ const makeServer = async () => {
     },
   });
   server.register(errorPlugin);
+  server.register(websocketRoutes);
 
   server.register(swagger, {
     openapi: {
@@ -56,7 +57,6 @@ const makeServer = async () => {
   server.register(peopleApiRoutes);
   server.register(usersApiRoutes);
   server.register(videosApiRoutes);
-  server.register(websocketRoutes);
 
   return server;
 };

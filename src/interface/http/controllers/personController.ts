@@ -37,7 +37,7 @@ export const personController = {
 
     const fileBase64 = file.toString("base64");
 
-    const embeddingResponse = await aiApiClient.post("/create_person", {
+    const embeddingResponse = await aiApiClient.post("/upload-embedding", {
       image: fileBase64,
     });
 

@@ -1,4 +1,4 @@
-import { asClass, asFunction, createContainer } from "awilix";
+import { asClass, asFunction, asValue, createContainer } from "awilix";
 import {
   CreatePerson,
   makeCreatePerson,
@@ -31,6 +31,7 @@ import {
   DeleteVideo,
   makeDeleteVideo,
 } from "../application/use-cases/video/delete.ts";
+import { Config, config } from "../config.ts";
 import { PersonInterface } from "../domain/PersonRepository.ts";
 import { ProfilePictureInterface } from "../domain/ProfilePictureRepository.ts";
 import { UserInterface } from "../domain/UserRepository.ts";
@@ -39,8 +40,11 @@ import { PersonRepository } from "../infrastructure/database/repositories/Person
 import { ProfilePictureRepository } from "../infrastructure/database/repositories/ProfilePictureRepository.ts";
 import { UserRepository } from "../infrastructure/database/repositories/UserRepository.ts";
 import { VideoRepository } from "../infrastructure/database/repositories/VideoRepository.ts";
+import { Logger, makeLogger } from "./logger.ts";
 
 export type Container = {
+  config: Config;
+  logger: Logger;
   createPerson: CreatePerson;
   deletePerson: DeletePerson;
   upsertPicture: UpsertPicture;
@@ -58,6 +62,8 @@ export type Container = {
 const awilixContainer = createContainer<Container>();
 
 awilixContainer.register({
+  config: asValue(config),
+  logger: asFunction(makeLogger),
   createPerson: asFunction(makeCreatePerson),
   deletePerson: asFunction(makeDeletePerson),
   upsertPicture: asFunction(makeUpsertPicture),

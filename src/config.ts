@@ -5,18 +5,25 @@ import "dotenv";
 
 const env = Env.string("ENVIRONMENT", "development") as EnvType;
 
-const loggerConfig = {
-  level: "debug",
-  transport: {
-    target: "pino-pretty",
-    options: {
-      translateTime: "HH:MM:ss Z",
-      ignore: "pid,hostname",
+const logger = {
+  development: {
+    level: "debug",
+    transport: {
+      target: "pino-pretty",
+      options: {
+        translateTime: "HH:MM:ss Z",
+        ignore: "pid,hostname",
+      },
     },
   },
+  production: {
+    level: "info",
+  },
+  test: {
+    level: "silent",
+  },
 };
-
-const dbLogger = pino({ ...loggerConfig, level: "debug" });
+const dbLogger = pino({ ...logger, level: "debug" });
 
 const http = {
   port: Env.number("PORT", 3000),
@@ -24,7 +31,7 @@ const http = {
   baseUrl: Env.string("SERVER_BASE_URL", "http://localhost:3000"),
   apiBaseUrl: Env.string("AI_BASE_URL", "http://localhost:5000"),
   logger: {
-    development: loggerConfig,
+    development: logger,
     production: true,
     test: false,
   },
@@ -65,7 +72,7 @@ const secret = {
   sessionSecret: Env.string("SESSION_SECRET", "This session needs a secret"),
 };
 
-const config = { env, http, db, secret };
+const config = { env, http, db, secret, logger };
 
 type Config = typeof config;
 
