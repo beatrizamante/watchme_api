@@ -1,3 +1,4 @@
+import { InvalidUserError } from "../../../domain/applicationErrors.ts";
 import { UserModel } from "../../../infrastructure/database/models/UserModel.ts";
 import { VideoModel } from "../../../infrastructure/database/models/VideoModel.ts";
 import { VideoSerializer } from "../../../interface/serializer/serializeVideo.ts";
@@ -5,7 +6,12 @@ import { VideoSerializer } from "../../../interface/serializer/serializeVideo.ts
 export const findVideos = async (user_id: number) => {
   const user = await UserModel.query().findById(user_id);
 
-  if (user?.isAdmin()) {
+  if (!user)
+    throw new InvalidUserError({
+      message: "This user cannot access this resource",
+    });
+
+  if (user.isAdmin()) {
     return await VideoModel.query().select();
   }
 

@@ -11,10 +11,11 @@ export const findPeople = async (user_id: number) => {
       message: "This user cannot access this resource",
     });
 
-  if (user?.isAdmin()) {
-    return await PersonModel.query().select();
+  if (user.isAdmin()) {
+    return PersonSerializer.serializeList(await PersonModel.query().select());
   }
 
-  const people = await PersonModel.query().where("user_id", user_id);
-  return PersonSerializer.serializeList(people);
+  return PersonSerializer.serializeList(
+    await PersonModel.query().where("user_id", user_id)
+  );
 };

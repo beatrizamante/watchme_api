@@ -1,5 +1,6 @@
 import {
   DatabaseError,
+  InvalidUserError,
   InvalidVideoError,
 } from "../../../domain/applicationErrors.ts";
 import { UserModel } from "../../../infrastructure/database/models/UserModel.ts";
@@ -10,7 +11,12 @@ export const findVideo = async (id: number, user_id: number) => {
   try {
     const user = await UserModel.query().findById(user_id);
 
-    if (user?.isAdmin()) {
+    if (!user)
+      throw new InvalidUserError({
+        message: "This user cannot access this resource",
+      });
+
+    if (user.isAdmin()) {
       const video = await VideoModel.query().findById(id);
 
       if (!video)

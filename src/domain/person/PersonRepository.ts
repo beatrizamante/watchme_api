@@ -1,4 +1,4 @@
-import { Person } from "./person/Person.ts";
+import { Person } from "./Person.ts";
 
 export interface PersonInterface {
   create: (person: Person) => Promise<Person>;
