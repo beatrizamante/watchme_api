@@ -23,7 +23,7 @@
   "author": "",
   "license": "ISC",
   "type": "module",
-  "packageManager": "pnpm@10.14.0",
+  "packageManager": "pnpm@10.20.0",
   "dependencies": {
     "@fastify/awilix": "^8.0.0",
     "@fastify/cookie": "^11.0.2",
