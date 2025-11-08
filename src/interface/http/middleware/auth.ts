@@ -68,6 +68,7 @@ export const authentication = {
       });
     }
   },
+
   refresh: async (request: FastifyRequest, reply: FastifyReply) => {
     try {
       const { token } = request.cookies;
