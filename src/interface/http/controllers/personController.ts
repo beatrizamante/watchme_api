@@ -10,55 +10,66 @@ import {
 import { fileSizePolicy } from "../../../policies/fileSizePolicy.ts";
 import { aiApiClient } from "../_lib/client.ts";
 import { createRequestScopedContainer } from "../_lib/index.ts";
-import { multiformFilter } from "../_lib/multiformFilter.ts";
+import { extractFileData } from "../_lib/fileDataHandler.ts";
 export const personController = {
   create: async (request: FastifyRequest, reply: FastifyReply) => {
-    // biome-ignore lint/style/noNonNullAssertion: "The user is always being checked through an addHook at the request level"
-    const userId = request.userId!;
-    const parts = request.parts();
-    const { bodyData, file } = await multiformFilter(parts);
-    const parseResult = CreatePersonInput.safeParse(bodyData);
-    const { createPerson } = createRequestScopedContainer();
+    try {
+      // biome-ignore lint/style/noNonNullAssertion: "The user is always being checked through an addHook at the request level"
+      const userId = request.userId!;
+      const { createPerson } = createRequestScopedContainer();
+      const { file, bodyData } = await extractFileData(request);
+      const parseResult = CreatePersonInput.safeParse(bodyData);
 
-    if (!parseResult.success) {
-      return reply.status(400).send({
-        error: "Invalid input",
-        details: parseResult.error.issues,
+      if (!parseResult.success) {
+        return reply.status(400).send({
+          error: "Invalid input",
+          details: parseResult.error.issues,
+        });
+      }
+
+      fileSizePolicy({ file });
+
+      const fileBase64 = file.toString("base64");
+
+      const embeddingResponse = await aiApiClient.post("/upload-embedding", {
+        image: fileBase64,
       });
-    }
 
-    if (!file) {
-      throw new InvalidPersonError({
-        message: "To find a person, you need to add a picture",
+      if (!embeddingResponse.data || !embeddingResponse.data.embedding) {
+        throw new ExternalServiceError({
+          message: "Cannot process request - no embedding returned",
+        });
+      }
+
+      const embeddingBase64 = embeddingResponse.data.embedding;
+      const embedding = Buffer.from(embeddingBase64, "base64");
+
+      const result = await createPerson({
+        person: {
+          name: parseResult.data.name,
+          user_id: userId,
+          embedding,
+        },
       });
+
+      return reply.status(201).send(result);
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error occurred";
+
+      if (
+        errorMessage.includes("fileData") ||
+        errorMessage.includes("base64") ||
+        errorMessage.includes("content type")
+      ) {
+        return reply.status(400).send({
+          error: "Invalid file data",
+          message: errorMessage,
+        });
+      }
+
+      throw new InvalidPersonError({ message: errorMessage });
     }
-
-    fileSizePolicy({ file });
-
-    const fileBase64 = file.toString("base64");
-
-    const embeddingResponse = await aiApiClient.post("/upload-embedding", {
-      image: fileBase64,
-    });
-
-    if (!embeddingResponse.data || !embeddingResponse.data.embedding) {
-      throw new ExternalServiceError({
-        message: "Cannot process request - no embedding returned",
-      });
-    }
-
-    const embeddingBase64 = embeddingResponse.data.embedding;
-    const embedding = Buffer.from(embeddingBase64, "base64");
-
-    const result = await createPerson({
-      person: {
-        name: parseResult.data.name,
-        user_id: userId,
-        embedding,
-      },
-    });
-
-    return reply.status(201).send(result);
   },
 
   delete: async (request: FastifyRequest, reply: FastifyReply) => {

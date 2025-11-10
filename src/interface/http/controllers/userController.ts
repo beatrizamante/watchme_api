@@ -7,7 +7,7 @@ import { Roles } from "../../../interfaces/roles.ts";
 import { fileSizePolicy } from "../../../policies/fileSizePolicy.ts";
 import { imagePolicy } from "../../../policies/imagePolicy.ts";
 import { createRequestScopedContainer } from "../_lib/index.ts";
-import { multiformFilter } from "../_lib/multiformFilter.ts";
+import { extractFileData } from "../_lib/fileDataHandler.ts";
 
 type CreateUserDTO = {
   id?: number;
@@ -46,64 +46,89 @@ export const userController = {
   },
 
   update: async (request: FastifyRequest, reply: FastifyReply) => {
-    // biome-ignore lint/style/noNonNullAssertion: "The user is always being checked through an addHook at the request level"
-    const userId = request.userId!;
-    const parts = request.parts();
-    const { bodyData, file, originalFilename } = await multiformFilter(parts);
-    const paramsResult = UpdateUserParams.safeParse(request.query);
+    try {
+      // biome-ignore lint/style/noNonNullAssertion: "The user is always being checked through an addHook at the request level"
+      const userId = request.userId!;
+      const paramsResult = UpdateUserParams.safeParse(request.query);
 
-    if (!paramsResult.success) {
-      return reply.status(400).send({
-        error: "Invalid user identifier",
-        details: paramsResult.error.issues,
+      if (!paramsResult.success) {
+        return reply.status(400).send({
+          error: "Invalid user identifier",
+          details: paramsResult.error.issues,
+        });
+      }
+
+      // Handle both multipart form data and JSON with base64
+      let bodyData: Record<string, unknown> = {};
+      let file: Buffer | undefined;
+      let originalFilename: string | undefined;
+
+      try {
+        const fileData = await extractFileData(request);
+        bodyData = fileData.bodyData;
+        file = fileData.file;
+        originalFilename = fileData.originalFilename;
+      } catch (error) {
+        // If no file data, try to parse as regular JSON
+        const contentType = request.headers["content-type"] || "";
+        if (contentType.includes("application/json")) {
+          bodyData = request.body as Record<string, unknown>;
+        }
+      }
+
+      if (file && originalFilename) {
+        fileSizePolicy({ file });
+        imagePolicy({ originalFilename });
+      }
+
+      const parseResult = UpdateUserInput.safeParse(bodyData);
+      const { updateUser } = createRequestScopedContainer();
+
+      if (!parseResult.success) {
+        return reply.status(400).send({
+          error: "Invalid input",
+          details: parseResult.error.issues,
+        });
+      }
+
+      const currentUser = await findUser({
+        id: paramsResult.data.id,
+        user_id: userId,
+      });
+
+      const { username, email, password, role, active } = parseResult.data;
+
+      const updateData: Partial<CreateUserDTO> = {
+        id: paramsResult.data.id,
+        username: username ?? currentUser.username,
+        email: email ?? currentUser.email,
+        role: (role ?? currentUser.role) as Roles,
+        active: active ?? currentUser.active,
+      };
+
+      if (password) {
+        updateData.password = password;
+      } else {
+        updateData.password = "dummy_password_for_validation";
+      }
+
+      const userToUpdate = new User(updateData as CreateUserDTO);
+
+      const result = await updateUser({
+        user: userToUpdate,
+        file,
+        originalFilename,
+      });
+
+      return reply.status(200).send(JSON.stringify(result));
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error occurred";
+      return reply.status(500).send({
+        error: "Internal server error",
+        message: errorMessage,
       });
     }
-
-    if (file && originalFilename) {
-      fileSizePolicy({ file });
-      imagePolicy({ originalFilename });
-    }
-
-    const parseResult = UpdateUserInput.safeParse(bodyData);
-    const { updateUser } = createRequestScopedContainer();
-
-    if (!parseResult.success) {
-      return reply.status(400).send({
-        error: "Invalid input",
-        details: parseResult.error.issues,
-      });
-    }
-
-    const currentUser = await findUser({
-      id: paramsResult.data.id,
-      user_id: userId,
-    });
-
-    const { username, email, password, role, active } = parseResult.data;
-
-    const updateData: Partial<CreateUserDTO> = {
-      id: paramsResult.data.id,
-      username: username ?? currentUser.username,
-      email: email ?? currentUser.email,
-      role: (role ?? currentUser.role) as Roles,
-      active: active ?? currentUser.active,
-    };
-
-    if (password) {
-      updateData.password = password;
-    } else {
-      updateData.password = "dummy_password_for_validation";
-    }
-
-    const userToUpdate = new User(updateData as CreateUserDTO);
-
-    const result = await updateUser({
-      user: userToUpdate,
-      file,
-      originalFilename,
-    });
-
-    return reply.status(200).send(JSON.stringify(result));
   },
 
   delete: async (request: FastifyRequest, reply: FastifyReply) => {
