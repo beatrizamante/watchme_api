@@ -30,14 +30,7 @@ export const extractFileData = async (
 
     let base64Data = body.fileData;
     let originalFilename = "uploaded_file";
-
-    if (body.filename) {
-      originalFilename = body.filename;
-    } else if (body.fileName) {
-      originalFilename = body.fileName;
-    } else if (body.name) {
-      originalFilename = body.name;
-    }
+    originalFilename = body.fileName;
 
     if (!originalFilename.includes(".")) {
       let mimeType = body.mimeType;
@@ -77,9 +70,7 @@ export const extractFileData = async (
       const file = Buffer.from(base64Data, "base64");
       const bodyData = { ...body };
       delete bodyData.fileData;
-      delete bodyData.filename;
       delete bodyData.fileName;
-      delete bodyData.name;
       delete bodyData.mimeType;
 
       return { file, originalFilename, bodyData };

@@ -11,6 +11,7 @@ import { fileSizePolicy } from "../../../policies/fileSizePolicy.ts";
 import { aiApiClient } from "../_lib/client.ts";
 import { createRequestScopedContainer } from "../_lib/index.ts";
 import { extractFileData } from "../_lib/fileDataHandler.ts";
+import { logger } from "../../../_lib/logger.ts";
 export const personController = {
   create: async (request: FastifyRequest, reply: FastifyReply) => {
     try {
