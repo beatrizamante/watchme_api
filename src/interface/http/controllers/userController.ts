@@ -49,55 +49,30 @@ export const userController = {
     try {
       // biome-ignore lint/style/noNonNullAssertion: "The user is always being checked through an addHook at the request level"
       const userId = request.userId!;
-      const paramsResult = UpdateUserParams.safeParse(request.query);
+      const parseResult = UpdateUserInput.safeParse(request.body);
+      const updatedId = UpdateUserParams.safeParse(request.query);
 
-      if (!paramsResult.success) {
-        return reply.status(400).send({
-          error: "Invalid user identifier",
-          details: paramsResult.error.issues,
-        });
-      }
-
-      let bodyData: Record<string, unknown> = {};
-      let file: Buffer | undefined;
-      let originalFilename: string | undefined;
-
-      try {
-        const fileData = await extractFileData(request);
-        bodyData = fileData.bodyData;
-        file = fileData.file;
-        originalFilename = fileData.originalFilename;
-      } catch (error) {
-        const contentType = request.headers["content-type"] || "";
-        if (contentType.includes("application/json")) {
-          bodyData = request.body as Record<string, unknown>;
-        }
-      }
-
-      if (file && originalFilename) {
-        fileSizePolicy({ file });
-        imagePolicy({ originalFilename });
-      }
-
-      const parseResult = UpdateUserInput.safeParse(bodyData);
-      const { updateUser } = createRequestScopedContainer();
-
-      if (!parseResult.success) {
+      if (!parseResult.success || !updatedId.success) {
         return reply.status(400).send({
           error: "Invalid input",
-          details: parseResult.error.issues,
+          details: [
+            ...(parseResult.success ? [] : parseResult.error.issues),
+            ...(updatedId.success ? [] : updatedId.error.issues),
+          ],
         });
       }
 
+      const { updateUser } = createRequestScopedContainer();
+
       const currentUser = await findUser({
-        id: paramsResult.data.id,
+        id: updatedId.data.id,
         user_id: userId,
       });
 
       const { username, email, password, role, active } = parseResult.data;
 
       const updateData: Partial<CreateUserDTO> = {
-        id: paramsResult.data.id,
+        id: updatedId.data.id,
         username: username ?? currentUser.username,
         email: email ?? currentUser.email,
         role: (role ?? currentUser.role) as Roles,
@@ -114,8 +89,6 @@ export const userController = {
 
       const result = await updateUser({
         user: userToUpdate,
-        file,
-        originalFilename,
       });
 
       return reply.status(200).send(result);
@@ -206,7 +179,6 @@ const UpdateUserInput = z.object({
   password: z.string().min(6).optional(),
   role: z.enum(["ADMIN", "USER"]).optional(),
   active: z.coerce.boolean().optional(),
-  file: z.any(),
 });
 
 const UpdateUserParams = z.object({
