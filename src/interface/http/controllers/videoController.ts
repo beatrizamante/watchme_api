@@ -15,8 +15,6 @@ export const videoController = {
       // biome-ignore lint/style/noNonNullAssertion: "The user is always being checked through an addHook at the request level"
       const userId = request.userId!;
       const { createVideo } = createRequestScopedContainer();
-
-      // Handle both multipart form data and JSON with base64
       const { file, originalFilename, bodyData } = await extractFileData(
         request
       );
