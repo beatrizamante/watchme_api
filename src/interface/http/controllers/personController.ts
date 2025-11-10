@@ -99,7 +99,7 @@ export const personController = {
 
     const people = await findPeople(userId);
 
-    return reply.status(302).send(people);
+    return reply.status(200).send(people);
   },
 
   find: async (request: FastifyRequest, reply: FastifyReply) => {
@@ -116,7 +116,7 @@ export const personController = {
 
     const person = await findPerson(parseResult.data.id, userId);
 
-    return reply.status(302).send(person);
+    return reply.status(200).send(person);
   },
 
   findInVideo: async (request: FastifyRequest, reply: FastifyReply) => {

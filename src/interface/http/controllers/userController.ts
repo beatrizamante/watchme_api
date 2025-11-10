@@ -42,7 +42,7 @@ export const userController = {
       },
     });
 
-    return reply.status(201).send(JSON.stringify(result));
+    return reply.status(201).send(result);
   },
 
   update: async (request: FastifyRequest, reply: FastifyReply) => {
@@ -58,7 +58,6 @@ export const userController = {
         });
       }
 
-      // Handle both multipart form data and JSON with base64
       let bodyData: Record<string, unknown> = {};
       let file: Buffer | undefined;
       let originalFilename: string | undefined;
@@ -69,7 +68,6 @@ export const userController = {
         file = fileData.file;
         originalFilename = fileData.originalFilename;
       } catch (error) {
-        // If no file data, try to parse as regular JSON
         const contentType = request.headers["content-type"] || "";
         if (contentType.includes("application/json")) {
           bodyData = request.body as Record<string, unknown>;
@@ -120,7 +118,7 @@ export const userController = {
         originalFilename,
       });
 
-      return reply.status(200).send(JSON.stringify(result));
+      return reply.status(200).send(result);
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : "Unknown error occurred";
@@ -170,7 +168,7 @@ export const userController = {
       user_id: userId,
     });
 
-    return reply.status(302).send(users);
+    return reply.status(200).send(users);
   },
 
   find: async (request: FastifyRequest, reply: FastifyReply) => {
@@ -192,7 +190,7 @@ export const userController = {
       user_id: userId,
     });
 
-    return reply.status(302).send(user);
+    return reply.status(200).send(user);
   },
 };
 

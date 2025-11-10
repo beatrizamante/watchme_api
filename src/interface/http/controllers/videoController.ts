@@ -77,7 +77,7 @@ export const videoController = {
 
     const videos = await findVideos(userId);
 
-    return reply.status(302).send(videos);
+    return reply.status(200).send(videos);
   },
 
   find: async (request: FastifyRequest, reply: FastifyReply) => {
@@ -94,7 +94,7 @@ export const videoController = {
 
     const video = await findVideo(parseResult.data.id, userId);
 
-    return reply.status(302).send(video);
+    return reply.status(200).send(video);
   },
 };
 
