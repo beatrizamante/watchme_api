@@ -21,6 +21,22 @@ export const handleConnection = async ({
   const sessionId = crypto.randomUUID();
 
   try {
+    // Enforce single connection per user
+    const existingConnection = Array.from(activeConnections.values()).find(
+      (conn) => conn.userId === userId
+    );
+
+    if (existingConnection) {
+      console.log(`Closing existing connection for user ${userId}`);
+      existingConnection.clientSocket.send(
+        JSON.stringify({
+          type: "replaced",
+          message: "Connection replaced by new session",
+        })
+      );
+      cleanUp({ sessionId: existingConnection.sessionId, activeConnections });
+    }
+
     const person = await findPerson(personId, userId);
 
     if (!person) {
