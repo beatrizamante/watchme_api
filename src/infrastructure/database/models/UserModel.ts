@@ -1,6 +1,6 @@
 import bcrypt from "bcryptjs";
 import { ModelObject, ModelOptions, Pojo, RelationMappings } from "objection";
-import { Roles } from "../../../interfaces/roles.ts";
+import { Roles } from "../../../shared/roles.ts";
 import { BaseModel } from "./BaseModel.js";
 
 type AuthParams = {

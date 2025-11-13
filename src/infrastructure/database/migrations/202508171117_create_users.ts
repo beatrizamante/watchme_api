@@ -1,5 +1,5 @@
 import type { Knex } from "knex";
-import { Roles } from "../../../interfaces/roles.ts";
+import { Roles } from "../../../shared/roles.ts";
 
 export async function up(knex: Knex): Promise<void> {
   return knex.schema.createTable("users", (t) => {

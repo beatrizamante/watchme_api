@@ -67,7 +67,12 @@ const secret = {
   sessionSecret: Env.string("SESSION_SECRET", "This session needs a secret"),
 };
 
-const config = { env, http, db, secret, logger };
+const redis = {
+  host: Env.string("REDIS_HOST", "127.0.0.1"),
+  port: Env.number("REDIS_PORT", 6379),
+};
+
+const config = { env, http, db, secret, logger, redis };
 
 type Config = typeof config;
 

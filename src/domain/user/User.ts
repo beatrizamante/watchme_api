@@ -1,4 +1,4 @@
-import { Roles } from "../../interfaces/roles.ts";
+import { Roles } from "../../shared/roles.ts";
 import { InvalidUserError } from "../applicationErrors.ts";
 
 type CreateUserDTO = {
