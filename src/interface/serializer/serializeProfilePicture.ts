@@ -1,4 +1,4 @@
-import { ProfilePicture } from "../../domain/ProfilePicture.ts";
+import { ProfilePicture } from "../../domain/user/ProfilePicture.ts";
 
 export const ProfilePictureSerializer = {
   serialize(picture: ProfilePicture) {

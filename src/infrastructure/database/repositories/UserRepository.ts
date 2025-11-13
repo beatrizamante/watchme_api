@@ -1,7 +1,7 @@
 import { Transaction } from "objection";
 import { DatabaseError } from "../../../domain/applicationErrors.ts";
-import { User } from "../../../domain/User.ts";
-import { UserInterface } from "../../../domain/UserRepository.ts";
+import { User } from "../../../domain/user/User.ts";
+import { UserInterface } from "../../../domain/user/UserRepository.ts";
 import { UserModel } from "../models/UserModel.ts";
 
 export class UserRepository implements UserInterface {

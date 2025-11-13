@@ -1,5 +1,5 @@
 import type { Knex } from "knex";
-import { Roles } from "../../../interfaces/roles.ts";
+import { Roles } from "../../../shared/roles.ts";
 import bcrypt from "bcryptjs";
 
 export async function seed(knex: Knex): Promise<void> {

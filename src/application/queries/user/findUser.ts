@@ -1,9 +1,9 @@
 import {
   InvalidUserError,
   UnauthorizedError,
-} from "../../domain/applicationErrors.ts";
-import { UserModel } from "../../infrastructure/database/models/UserModel.ts";
-import { UserSerializer } from "../../interface/serializer/serializeUser.ts";
+} from "../../../domain/applicationErrors.ts";
+import { UserModel } from "../../../infrastructure/database/models/UserModel.ts";
+import { UserSerializer } from "../../../interface/serializer/serializeUser.ts";
 
 type FindUser = {
   id: number;

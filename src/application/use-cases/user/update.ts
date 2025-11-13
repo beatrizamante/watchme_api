@@ -1,7 +1,7 @@
 import { InvalidUserError } from "../../../domain/applicationErrors.ts";
-import { ProfilePictureInterface } from "../../../domain/ProfilePictureRepository.ts";
-import { User } from "../../../domain/User.ts";
-import { UserInterface } from "../../../domain/UserRepository.ts";
+import { ProfilePictureInterface } from "../../../domain/user/ProfilePictureRepository.ts";
+import { User } from "../../../domain/user/User.ts";
+import { UserInterface } from "../../../domain/user/UserRepository.ts";
 import { UserModel } from "../../../infrastructure/database/models/UserModel.ts";
 import { ProfilePictureSerializer } from "../../../interface/serializer/serializeProfilePicture.ts";
 import { UserSerializer } from "../../../interface/serializer/serializeUser.ts";

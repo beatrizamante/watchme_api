@@ -2,10 +2,10 @@ import {
   DatabaseError,
   InvalidPersonError,
   InvalidUserError,
-} from "../../domain/applicationErrors.ts";
-import { PersonModel } from "../../infrastructure/database/models/PersonModel.ts";
-import { UserModel } from "../../infrastructure/database/models/UserModel.ts";
-import { PersonSerializer } from "../../interface/serializer/serializePerson.ts";
+} from "../../../domain/applicationErrors.ts";
+import { PersonModel } from "../../../infrastructure/database/models/PersonModel.ts";
+import { UserModel } from "../../../infrastructure/database/models/UserModel.ts";
+import { PersonSerializer } from "../../../interface/serializer/serializePerson.ts";
 
 export const findPerson = async (id: number, user_id: number) => {
   try {
@@ -16,7 +16,7 @@ export const findPerson = async (id: number, user_id: number) => {
         message: "This user cannot access this resource",
       });
 
-    if (user?.isAdmin()) {
+    if (user.isAdmin()) {
       const person = await PersonModel.query().findById(id);
 
       if (!person)
@@ -24,7 +24,7 @@ export const findPerson = async (id: number, user_id: number) => {
           message: "This person doesn't exist",
         });
 
-      return person;
+      return PersonSerializer.serialize(person);
     }
 
     const person = await PersonModel.query().findOne({ id, user_id });

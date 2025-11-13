@@ -1,4 +1,4 @@
-import { User } from "../../domain/User.ts";
+import { User } from "../../domain/user/User.ts";
 
 export const UserSerializer = {
   serialize(user: Partial<User>) {

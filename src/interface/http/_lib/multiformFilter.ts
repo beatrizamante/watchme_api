@@ -13,7 +13,24 @@ export const multiformFilter = async (
       originalFilename = part.filename;
     } else {
       if (part.value && part.value.toString().trim() !== "") {
-        bodyData[part.fieldname] = part.value;
+        // Check if this is base64 data for a file
+        if (part.fieldname === "fileData" && typeof part.value === "string") {
+          try {
+            // Extract base64 data (remove data:type;base64, prefix if present)
+            const base64Data = part.value.toString().includes(",")
+              ? part.value.toString().split(",")[1]
+              : part.value.toString();
+
+            file = Buffer.from(base64Data, "base64");
+            // Set a default filename if not provided
+            originalFilename = (bodyData.filename as string) || "uploaded_file";
+          } catch (error) {
+            console.error("Error parsing base64 data:", error);
+            bodyData[part.fieldname] = part.value;
+          }
+        } else {
+          bodyData[part.fieldname] = part.value;
+        }
       }
     }
   }

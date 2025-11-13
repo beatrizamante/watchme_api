@@ -1,4 +1,4 @@
-import { InvalidPersonError } from "./applicationErrors.ts";
+import { InvalidPersonError } from "../applicationErrors.ts";
 
 type CreatePersonDTO = {
   id?: number;

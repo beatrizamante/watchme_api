@@ -1,35 +1,53 @@
 import { FastifyReply, FastifyRequest } from "fastify";
 import z from "zod/v4";
-import { findVideo } from "../../../application/queries/findVideo.ts";
-import { findVideos } from "../../../application/queries/findVideos.ts";
+import { findVideo } from "../../../application/queries/video/findVideo.ts";
+import { findVideos } from "../../../application/queries/video/findVideos.ts";
 import { InvalidVideoError } from "../../../domain/applicationErrors.ts";
 import { fileSizePolicy } from "../../../policies/fileSizePolicy.ts";
 import { videoPolicy } from "../../../policies/videoPolicy.ts";
 import { createRequestScopedContainer } from "../_lib/index.ts";
-import { multiformFilter } from "../_lib/multiformFilter.ts";
+import { extractFileData } from "../_lib/fileDataHandler.ts";
+import { logger } from "../../../_lib/logger.ts";
 
 export const videoController = {
   create: async (request: FastifyRequest, reply: FastifyReply) => {
-    // biome-ignore lint/style/noNonNullAssertion: "The user is always being checked through an addHook at the request level"
-    const userId = request.userId!;
-    const parts = request.parts();
-    const { file, originalFilename } = await multiformFilter(parts);
-    const { createVideo } = createRequestScopedContainer();
+    try {
+      // biome-ignore lint/style/noNonNullAssertion: "The user is always being checked through an addHook at the request level"
+      const userId = request.userId!;
+      const { createVideo } = createRequestScopedContainer();
+      const { file, originalFilename, bodyData } = await extractFileData(
+        request
+      );
 
-    if (!file || !originalFilename) {
-      throw new InvalidVideoError({ message: "You must upload a video" });
+      logger.debug({ bodyData, originalFilename }, "Video data received");
+
+      fileSizePolicy({ file });
+      videoPolicy({ originalFilename });
+
+      const result = await createVideo({
+        video: file,
+        userId,
+        originalFilename,
+      });
+
+      return reply.status(201).send(result);
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error occurred";
+
+      if (
+        errorMessage.includes("fileData") ||
+        errorMessage.includes("base64") ||
+        errorMessage.includes("content type")
+      ) {
+        return reply.status(400).send({
+          error: "Invalid file data",
+          message: errorMessage,
+        });
+      }
+
+      throw new InvalidVideoError({ message: errorMessage });
     }
-
-    fileSizePolicy({ file });
-    videoPolicy({ originalFilename });
-
-    const result = await createVideo({
-      video: file,
-      userId,
-      originalFilename,
-    });
-
-    return reply.status(201).send(result);
   },
 
   delete: async (request: FastifyRequest, reply: FastifyReply) => {
@@ -59,7 +77,7 @@ export const videoController = {
 
     const videos = await findVideos(userId);
 
-    return reply.status(302).send(videos);
+    return reply.status(200).send(videos);
   },
 
   find: async (request: FastifyRequest, reply: FastifyReply) => {
@@ -76,7 +94,7 @@ export const videoController = {
 
     const video = await findVideo(parseResult.data.id, userId);
 
-    return reply.status(302).send(video);
+    return reply.status(200).send(video);
   },
 };
 

@@ -2,8 +2,8 @@ import {
   ExternalServiceError,
   InvalidVideoError,
 } from "../../../domain/applicationErrors.ts";
-import { Video } from "../../../domain/Video.ts";
-import { VideoInterface } from "../../../domain/VideoRepository.ts";
+import { Video } from "../../../domain/video/Video.ts";
+import { VideoInterface } from "../../../domain/video/VideoRepository.ts";
 import { VideoModel } from "../../../infrastructure/database/models/VideoModel.ts";
 import { managePath } from "../../../infrastructure/systemfile/managePath.ts";
 import { VideoSerializer } from "../../../interface/serializer/serializeVideo.ts";

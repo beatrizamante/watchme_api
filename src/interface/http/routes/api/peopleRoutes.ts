@@ -94,6 +94,69 @@ export function peopleApiRoutes(fastify: FastifyInstance) {
   );
 
   fastify.get(
+    "/person/job-status",
+    {
+      schema: {
+        summary: "Check video analysis job status",
+        tags: ["People"],
+        querystring: {
+          type: "object",
+          properties: {
+            jobId: { type: "string", format: "uuid" },
+          },
+          required: ["jobId"],
+        },
+        response: {
+          200: {
+            description: "Job status information",
+            type: "object",
+            properties: {
+              jobId: { type: "string" },
+              status: {
+                type: "string",
+                enum: ["waiting", "active", "completed", "failed", "delayed"],
+              },
+              progress: { type: "number", minimum: 0, maximum: 100 },
+              createdAt: { type: "number" },
+              result: {
+                type: "object",
+                properties: {
+                  person: { type: "object" },
+                  video: { type: "object" },
+                  matches: { type: "array" },
+                  total_matches: { type: "number" },
+                },
+              },
+              error: { type: "string" },
+            },
+            example: {
+              jobId: "123e4567-e89b-12d3-a456-426614174000",
+              status: "completed",
+              progress: 100,
+              createdAt: 1698840000000,
+              result: {
+                person: { id: 1, name: "John Doe" },
+                video: { id: 2, path: "/uploads/video.mp4" },
+                matches: [],
+                total_matches: 0,
+              },
+            },
+          },
+          404: {
+            description: "Job not found",
+            type: "object",
+            properties: {
+              error: { type: "string" },
+              message: { type: "string" },
+            },
+          },
+        },
+      },
+    },
+    personController.checkJobStatus
+  );
+
+  fastify.get(
     "/person/find",
     {
       schema: {
@@ -108,74 +171,21 @@ export function peopleApiRoutes(fastify: FastifyInstance) {
           required: ["id", "videoId"],
         },
         response: {
-          200: {
-            description: "Person detection results in video",
+          202: {
+            description:
+              "Video analysis started - returns job ID for status checking",
             type: "object",
             properties: {
-              person: {
-                type: "object",
-                properties: {
-                  id: { type: "number" },
-                  user_id: { type: "number" },
-                  name: { type: "string" },
-                },
-              },
-              video: {
-                type: "object",
-                properties: {
-                  id: { type: "number" },
-                  user_id: { type: "number" },
-                  path: { type: "string" },
-                },
-              },
-              matches: {
-                type: "array",
-                items: {
-                  type: "object",
-                  properties: {
-                    distance: { type: "number", minimum: 0, maximum: 1 },
-                    bounding_box: {
-                      type: "object",
-                      properties: {
-                        x: { type: "number" },
-                        y: { type: "number" },
-                        width: { type: "number" },
-                        height: { type: "number" },
-                      },
-                    },
-                    timestamp: {
-                      type: "number",
-                      description: "Time in seconds",
-                    },
-                  },
-                },
-              },
-              total_matches: { type: "number" },
+              message: { type: "string" },
+              jobId: { type: "string", format: "uuid" },
+              status: { type: "string" },
+              estimatedTime: { type: "string" },
             },
             example: {
-              person: {
-                id: 1,
-                user_id: 5,
-                name: "Roni Fabricio",
-              },
-              video: {
-                id: 3,
-                user_id: 5,
-                path: "/uploads/videos/sample_video.mp4",
-              },
-              matches: [
-                {
-                  distance: 0.95,
-                  bounding_box: { x: 100, y: 150, width: 200, height: 300 },
-                  timestamp: 5.2,
-                },
-                {
-                  distance: 0.87,
-                  bounding_box: { x: 450, y: 200, width: 180, height: 280 },
-                  timestamp: 12.8,
-                },
-              ],
-              total_matches: 2,
+              message: "Video analysis started",
+              jobId: "123e4567-e89b-12d3-a456-426614174000",
+              status: "processing",
+              estimatedTime: "2-5 minutes",
             },
           },
         },

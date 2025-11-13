@@ -14,7 +14,7 @@ export function usersApiRoutes(fastify: FastifyInstance) {
         querystring: {
           type: "object",
           properties: {
-            active: { type: "boolean" },
+            active: { type: "string" },
           },
         },
         response: {
@@ -28,7 +28,7 @@ export function usersApiRoutes(fastify: FastifyInstance) {
                 username: { type: "string" },
                 email: { type: "string" },
                 role: { type: "string", enum: ["ADMIN", "USER"] },
-                active: { type: "boolean" },
+                active: { type: "string" },
               },
             },
             example: [
@@ -56,7 +56,7 @@ export function usersApiRoutes(fastify: FastifyInstance) {
               details: { type: "array" },
             },
             example: {
-              error: "Invalid input: active must be a boolean",
+              error: "Invalid input: active must be a string",
             },
           },
         },
@@ -87,7 +87,7 @@ export function usersApiRoutes(fastify: FastifyInstance) {
               username: { type: "string" },
               email: { type: "string" },
               role: { type: "string", enum: ["ADMIN", "USER"] },
-              active: { type: "boolean" },
+              active: { type: "string" },
             },
             example: {
               id: 1,
@@ -182,7 +182,7 @@ export function usersApiRoutes(fastify: FastifyInstance) {
                   username: { type: "string" },
                   email: { type: "string" },
                   role: { type: "string", enum: ["ADMIN", "USER"] },
-                  active: { type: "boolean" },
+                  active: { type: "string" },
                 },
               },
               profilePicture: {
@@ -272,7 +272,7 @@ export function usersApiRoutes(fastify: FastifyInstance) {
                   username: { type: "string" },
                   email: { type: "string" },
                   role: { type: "string", enum: ["ADMIN", "USER"] },
-                  active: { type: "boolean" },
+                  active: { type: "string" },
                 },
               },
               profilePicture: {

@@ -1,4 +1,4 @@
-import { Person } from "../../domain/Person.ts";
+import { Person } from "../../domain/person/Person.ts";
 export const PersonSerializer = {
   serialize(person: Person) {
     return {

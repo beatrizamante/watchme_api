@@ -1,7 +1,7 @@
 import { Transaction } from "objection";
 import { DatabaseError } from "../../../domain/applicationErrors.ts";
-import { Video } from "../../../domain/Video.ts";
-import { VideoInterface } from "../../../domain/VideoRepository.ts";
+import { Video } from "../../../domain/video/Video.ts";
+import { VideoInterface } from "../../../domain/video/VideoRepository.ts";
 import { VideoModel } from "../models/VideoModel.ts";
 
 export class VideoRepository implements VideoInterface {

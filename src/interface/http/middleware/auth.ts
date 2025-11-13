@@ -24,10 +24,13 @@ export const authentication = {
       httpOnly: true,
       path: "/",
       maxAge: 60 * 30,
-      sameSite: "none",
+      sameSite: "lax",
     });
 
-    return reply.status(201).send({ message: "Login successful" });
+    return reply.status(201).send({
+      message: "Login successful",
+      user: { username: user.username, role: user.role },
+    });
   },
 
   logout: async (__: FastifyRequest, reply: FastifyReply) => {
@@ -62,6 +65,52 @@ export const authentication = {
       console.error(`Error loging: ${error}`);
       throw new UnathenticatedError({
         message: "There was an error authenticating the user",
+      });
+    }
+  },
+
+  refresh: async (request: FastifyRequest, reply: FastifyReply) => {
+    try {
+      const { token } = request.cookies;
+
+      if (!token) {
+        return reply.status(401).send({
+          message: "No token provided",
+        });
+      }
+
+      const { userId } = jwt.verify(token, config.secret.sessionSecret) as {
+        userId: number;
+      };
+
+      const user = await UserModel.query().findById(userId);
+
+      if (!user) {
+        return reply.status(401).send({
+          message: "User not found",
+        });
+      }
+
+      const newToken = jwt.sign(
+        { userId: user.id },
+        config.secret.sessionSecret
+      );
+
+      reply.setCookie("token", newToken, {
+        httpOnly: true,
+        path: "/",
+        maxAge: 60 * 30,
+        sameSite: "lax",
+      });
+
+      return reply.status(200).send({
+        message: "Token refreshed",
+        user: { username: user.username, role: user.role },
+      });
+    } catch (error) {
+      console.error(`Token refresh error: ${error}`);
+      return reply.status(401).send({
+        message: "Invalid token",
       });
     }
   },

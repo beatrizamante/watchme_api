@@ -1,4 +1,4 @@
-import { InvalidVideoError } from "./applicationErrors.ts";
+import { InvalidVideoError } from "../applicationErrors.ts";
 
 type CreateVideoDTO = {
   id?: number;
