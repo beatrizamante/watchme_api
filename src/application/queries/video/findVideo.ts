@@ -5,6 +5,7 @@ import {
 } from "../../../domain/applicationErrors.ts";
 import { UserModel } from "../../../infrastructure/database/models/UserModel.ts";
 import { VideoModel } from "../../../infrastructure/database/models/VideoModel.ts";
+import { VideoWithUser } from "./../../../interface/serializer/serializeVideo.ts";
 import { VideoSerializer } from "../../../interface/serializer/serializeVideo.ts";
 
 export const findVideo = async (id: number, user_id: number) => {
@@ -17,7 +18,10 @@ export const findVideo = async (id: number, user_id: number) => {
       });
 
     if (user.isAdmin()) {
-      const video = await VideoModel.query().findById(id);
+      const video = (await VideoModel.query()
+        .join("users", "videos.user_id", "users.id")
+        .findById(id)
+        .select("videos.*", "users.username")) as unknown as VideoWithUser;
 
       if (!video)
         throw new InvalidVideoError({
@@ -27,7 +31,10 @@ export const findVideo = async (id: number, user_id: number) => {
       return video;
     }
 
-    const video = await VideoModel.query().findOne({ id, user_id });
+    const video = (await VideoModel.query()
+      .join("users", "videos.user_id", "users.id")
+      .findOne({ id, user_id })
+      .select("videos.*", "users.username")) as unknown as VideoWithUser;
 
     if (!video)
       throw new InvalidVideoError({ message: "This video doesn't exist" });
