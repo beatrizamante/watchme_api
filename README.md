@@ -80,6 +80,7 @@ Visit `http://localhost:3000/docs` for interactive API documentation.
 
 ## Scripts
 - `pnpm dev` — Start development server with hot reload
+- `pnpm worker` — Start worker server with hot reload
 - `pnpm db:create:dev` — Create development database
 - `pnpm db:migrate:dev` — Run migrations
 - `pnpm db:seed:dev` — Seed database
