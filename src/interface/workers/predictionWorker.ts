@@ -1,10 +1,13 @@
+/** biome-ignore-all lint/complexity/noStaticOnlyClass: TODO - alter static class */
 import { Job } from "bullmq";
-import { findPersonHandler } from "../../application/use-cases/person/findPersonHandler.ts";
 import { logger } from "../../_lib/logger.ts";
+import { findPersonHandler } from "../../application/use-cases/person/findPersonHandler.ts";
+import { Person } from "../../domain/person/Person.ts";
+import { Video } from "../../domain/video/Video.ts";
 
 type PredictionJobData = {
-  person: any;
-  video: any;
+  person: Person;
+  video: Video;
   userId: number;
   jobId: string;
 };
@@ -32,8 +35,8 @@ class PredictionWorker {
         userId,
         matches: result.matches || [],
       };
-    } catch (error: any) {
-      logger.error(`Prediction failed for job ${jobId}:`, error);
+    } catch (error: unknown) {
+      logger.error(`Prediction failed for job ${jobId}: ${error}`);
       throw error;
     }
   }

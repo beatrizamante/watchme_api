@@ -8,12 +8,12 @@ import {
   ExternalServiceError,
   InvalidPersonError,
 } from "../../../domain/applicationErrors.ts";
+import { queueService } from "../../../infrastructure/backgroundJobs/queueService.ts";
 import { fileSizePolicy } from "../../../policies/fileSizePolicy.ts";
+import { QUEUE_NAMES } from "../../../shared/queues.ts";
 import { aiApiClient } from "../_lib/client.ts";
 import { extractFileData } from "../_lib/fileDataHandler.ts";
 import { createRequestScopedContainer } from "../_lib/index.ts";
-import { queueService } from "../../../infrastructure/backgroundJobs/queueService.ts";
-import { QUEUE_NAMES } from "../../../shared/queues.ts";
 
 export const personController = {
   create: async (request: FastifyRequest, reply: FastifyReply) => {
@@ -48,6 +48,7 @@ export const personController = {
       const embeddingBase64 = embeddingResponse.data.embedding;
       const embedding = Buffer.from(embeddingBase64, "base64");
 
+      console.log("Buffer comes as_________", embedding);
       const result = await createPerson({
         person: {
           name: parseResult.data.name,
@@ -147,16 +148,12 @@ export const personController = {
     const jobId = crypto.randomUUID();
 
     try {
-      await queueService.enqueue(
-        QUEUE_NAMES.PREDICT_PERSON,
-        `predict-${jobId}`,
-        {
-          person,
-          video,
-          userId,
-          jobId,
-        }
-      );
+      queueService.enqueue(QUEUE_NAMES.PREDICT_PERSON, `predict-${jobId}`, {
+        person,
+        video,
+        userId,
+        jobId,
+      });
 
       logger.info(
         `Enqueued prediction job ${jobId} - Person: ${person.id}, Video: ${video.id}`
