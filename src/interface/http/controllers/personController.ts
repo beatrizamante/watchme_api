@@ -48,7 +48,6 @@ export const personController = {
       const embeddingBase64 = embeddingResponse.data.embedding;
       const embedding = Buffer.from(embeddingBase64, "base64");
 
-      console.log("Buffer comes as_________", embedding);
       const result = await createPerson({
         person: {
           name: parseResult.data.name,
