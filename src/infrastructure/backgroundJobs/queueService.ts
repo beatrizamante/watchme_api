@@ -1,4 +1,4 @@
-import { Queue, Worker } from "bullmq";
+import { Job, Queue, Worker } from "bullmq";
 import { config } from "../../config.ts";
 
 class BullQueueService {
@@ -9,9 +9,12 @@ class BullQueueService {
     queueName: string,
     jobName: string,
     jobData: T
-  ): Promise<void> {
+  ): Promise<string> {
     const queue = this.getQueue(queueName);
-    await queue.add(jobName, jobData);
+    const job = await queue.add(jobName, jobData, {
+      jobId: jobName,
+    });
+    return job.id || jobName;
   }
 
   getQueue(queueName: string): Queue {
@@ -19,10 +22,14 @@ class BullQueueService {
       const queue = new Queue(queueName, { connection: config.redis });
       this.queues.set(queueName, queue);
     }
-    return this.queues.get(queueName)!;
+    const existingQueue = this.queues.get(queueName);
+    if (!existingQueue) {
+      throw new Error(`Queue ${queueName} not found`);
+    }
+    return existingQueue;
   }
 
-  addWorker(queueName: string, handler: any): void {
+  addWorker(queueName: string, handler: (job: Job) => Promise<unknown>): void {
     if (this.workers.has(queueName)) {
       return;
     }

@@ -102,7 +102,7 @@ export function peopleApiRoutes(fastify: FastifyInstance) {
         querystring: {
           type: "object",
           properties: {
-            jobId: { type: "string", format: "uuid" },
+            jobId: { type: "string" },
           },
           required: ["jobId"],
         },

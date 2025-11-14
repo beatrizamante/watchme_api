@@ -30,7 +30,10 @@ class PredictionWorker {
       logger.info(`Prediction completed for job ${jobId} and user ${userId}`);
 
       return {
-        person,
+        person: {
+          id: person.id,
+          name: person.name,
+        },
         video,
         userId,
         matches: result.matches || [],

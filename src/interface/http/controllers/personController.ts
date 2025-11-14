@@ -147,12 +147,16 @@ export const personController = {
     const jobId = crypto.randomUUID();
 
     try {
-      queueService.enqueue(QUEUE_NAMES.PREDICT_PERSON, `predict-${jobId}`, {
-        person,
-        video,
-        userId,
-        jobId,
-      });
+      await queueService.enqueue(
+        QUEUE_NAMES.PREDICT_PERSON,
+        `predict-${jobId}`,
+        {
+          person,
+          video,
+          userId,
+          jobId,
+        }
+      );
 
       logger.info(
         `Enqueued prediction job ${jobId} - Person: ${person.id}, Video: ${video.id}`
@@ -243,5 +247,5 @@ const FindPersonInVideo = z.object({
 });
 
 const CheckJobInput = z.object({
-  jobId: z.string().uuid(),
+  jobId: z.string().nonempty(),
 });
