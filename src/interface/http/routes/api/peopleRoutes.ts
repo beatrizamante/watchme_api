@@ -133,16 +133,13 @@ export function peopleApiRoutes(fastify: FastifyInstance) {
                   type: "object",
                   properties: {
                     bbox: {
-                      type: "object",
-                      properties: {
-                        x: { type: "number" },
-                        y: { type: "number" },
-                        w: { type: "number" },
-                        h: { type: "number" },
-                      },
+                      type: "array",
+                      items: { type: "number" },
+                      minItems: 4,
+                      maxItems: 4,
+                      description: "Bounding box as [x, y, w, h]",
                     },
                     distance: { type: "number" },
-                    confidence: { type: "number" },
                     frame_number: { type: "number" },
                     timestamp: { type: "number" },
                     time_formatted: { type: "string" },
@@ -162,14 +159,8 @@ export function peopleApiRoutes(fastify: FastifyInstance) {
               userId: 2,
               matches: [
                 {
-                  bbox: {
-                    x: 100.5,
-                    y: 200.8,
-                    w: 150.0,
-                    h: 300.2,
-                  },
+                  bbox: [100.5, 200.8, 150.0, 300.2],
                   distance: 0.25,
-                  confidence: 0.85,
                   frame_number: 350,
                   timestamp: 176.5,
                   time_formatted: "00:02:56",
