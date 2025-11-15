@@ -155,8 +155,7 @@ export const personController = {
           video,
           userId,
           jobId,
-        },
-        600000
+        }
       );
 
       logger.info(

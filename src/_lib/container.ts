@@ -1,4 +1,5 @@
 import { asClass, asFunction, asValue, createContainer } from "awilix";
+import { Queue } from "bullmq";
 import {
   CreatePerson,
   makeCreatePerson,
@@ -32,18 +33,17 @@ import {
   makeDeleteVideo,
 } from "../application/use-cases/video/delete.ts";
 import { Config, config } from "../config.ts";
+import { PersonInterface } from "../domain/person/PersonRepository.ts";
+import { QueueService } from "../domain/queueService.ts";
 import { ProfilePictureInterface } from "../domain/user/ProfilePictureRepository.ts";
 import { UserInterface } from "../domain/user/UserRepository.ts";
 import { VideoInterface } from "../domain/video/VideoRepository.ts";
+import { BullQueueService } from "../infrastructure/backgroundJobs/queues/BullQueueServic.ts";
 import { PersonRepository } from "../infrastructure/database/repositories/PersonRepository.ts";
 import { ProfilePictureRepository } from "../infrastructure/database/repositories/ProfilePictureRepository.ts";
 import { UserRepository } from "../infrastructure/database/repositories/UserRepository.ts";
 import { VideoRepository } from "../infrastructure/database/repositories/VideoRepository.ts";
 import { Logger, makeLogger } from "./logger.ts";
-import { PersonInterface } from "../domain/person/PersonRepository.ts";
-import { QueueService } from "../domain/queueService.ts";
-import { makeBullMQQueueService } from "../infrastructure/backgroundJobs/queues/makeQueues.ts";
-import { Queue } from "bullmq";
 
 export type Container = {
   config: Config;
@@ -61,7 +61,6 @@ export type Container = {
   userRepository: UserInterface;
   profilePictureRepository: ProfilePictureInterface;
   queueService: QueueService<Queue>;
-  connection: { host: string; port: number };
 };
 
 const awilixContainer = createContainer<Container>();
@@ -81,8 +80,7 @@ awilixContainer.register({
   personRepository: asClass(PersonRepository),
   userRepository: asClass(UserRepository),
   profilePictureRepository: asClass(ProfilePictureRepository),
-  connection: asFunction(({ config }) => config.redis),
-  queueService: asFunction(makeBullMQQueueService),
+  queueService: asClass(BullQueueService),
 });
 
 export const container = awilixContainer;
