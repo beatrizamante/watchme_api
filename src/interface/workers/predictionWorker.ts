@@ -36,7 +36,7 @@ class PredictionWorker {
         },
         video,
         userId,
-        matches: result || [],
+        matches: result?.matches || [],
       };
     } catch (error: unknown) {
       logger.error(`Prediction failed for job ${jobId}: ${error}`);

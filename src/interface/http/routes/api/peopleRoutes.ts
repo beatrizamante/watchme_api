@@ -114,30 +114,39 @@ export function peopleApiRoutes(fastify: FastifyInstance) {
             properties: {
               person: {
                 type: "object",
-                id: { type: "integer" },
-                name: { type: "string" },
+                properties: {
+                  id: { type: "number" },
+                  name: { type: "string" },
+                },
               },
               video: {
                 type: "object",
-                id: { type: "integer" },
-                path: { type: "string" },
+                properties: {
+                  id: { type: "number" },
+                  path: { type: "string" },
+                },
               },
-              userId: { type: "integer" },
+              userId: { type: "number" },
               matches: {
                 type: "array",
-                match: {
+                items: {
                   type: "object",
-                  bbox: {
-                    x: { type: "float" },
-                    y: { type: "float" },
-                    w: { type: "float" },
-                    h: { type: "float" },
+                  properties: {
+                    bbox: {
+                      type: "object",
+                      properties: {
+                        x: { type: "number" },
+                        y: { type: "number" },
+                        w: { type: "number" },
+                        h: { type: "number" },
+                      },
+                    },
+                    distance: { type: "number" },
+                    confidence: { type: "number" },
+                    frame_number: { type: "number" },
+                    timestamp: { type: "number" },
+                    time_formatted: { type: "string" },
                   },
-                  distance: { type: "float" },
-                  confidence: { type: "float" },
-                  frame_number: { type: "integer" },
-                  timestamp: { type: "string" },
-                  time_formatted: { type: "string" },
                 },
               },
             },
@@ -154,16 +163,16 @@ export function peopleApiRoutes(fastify: FastifyInstance) {
               matches: [
                 {
                   bbox: {
-                    x: 2.4,
-                    y: 1.85,
-                    w: 3,
-                    h: -1.2,
+                    x: 100.5,
+                    y: 200.8,
+                    w: 150.0,
+                    h: 300.2,
                   },
-                  distance: 0.56,
-                  confidence: 0.28,
+                  distance: 0.25,
+                  confidence: 0.85,
                   frame_number: 350,
-                  timestamp: "02:56",
-                  time_formatted: "rmt",
+                  timestamp: 176.5,
+                  time_formatted: "00:02:56",
                 },
               ],
             },
