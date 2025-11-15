@@ -8,7 +8,7 @@ import {
   ExternalServiceError,
   InvalidPersonError,
 } from "../../../domain/applicationErrors.ts";
-import { queueService } from "../../../infrastructure/backgroundJobs/queueService.ts";
+
 import { fileSizePolicy } from "../../../policies/fileSizePolicy.ts";
 import { QUEUE_NAMES } from "../../../shared/queues.ts";
 import { aiApiClient } from "../_lib/client.ts";
@@ -127,6 +127,7 @@ export const personController = {
     // biome-ignore lint/style/noNonNullAssertion: "The user is always being checked through an addHook at the request level"
     const userId = request.userId!;
     const parseResult = FindPersonInVideo.safeParse(request.query);
+    const { queueService } = createRequestScopedContainer();
 
     if (!parseResult.success) {
       return reply.status(400).send({
@@ -155,7 +156,8 @@ export const personController = {
           video,
           userId,
           jobId,
-        }
+        },
+        300000
       );
 
       logger.info(

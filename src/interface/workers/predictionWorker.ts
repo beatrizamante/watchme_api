@@ -5,7 +5,7 @@ import { findPersonHandler } from "../../application/use-cases/person/findPerson
 import { Person } from "../../domain/person/Person.ts";
 import { Video } from "../../domain/video/Video.ts";
 
-type PredictionJobData = {
+export type PredictionJobData = {
   person: Person;
   video: Video;
   userId: number;
