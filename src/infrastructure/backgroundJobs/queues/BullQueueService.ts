@@ -1,7 +1,7 @@
 import { Job, Queue, QueueEvents, Worker } from "bullmq";
 import { config } from "../../../config.ts";
 
-export class BullQueueServicee {
+export class BullQueueService {
   private queues = new Map<string, Queue>();
   private workers = new Map<string, Worker>();
   private queueEvents = new Map<string, QueueEvents>();
@@ -87,4 +87,4 @@ export class BullQueueServicee {
   }
 }
 
-export const queueService = new BullQueueServicee();
+export const queueService = new BullQueueService();
