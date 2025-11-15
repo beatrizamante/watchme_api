@@ -21,7 +21,7 @@ class BullQueueService {
     queueName: string,
     jobName: string,
     jobData: T,
-    timeout: number = 300000
+    timeout: number = 30000000
   ): Promise<R> {
     const queue = this.getQueue(queueName);
     const job = await queue.add(jobName, jobData, {

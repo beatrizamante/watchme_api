@@ -183,61 +183,6 @@ export const personController = {
       });
     }
   },
-
-  checkJobStatus: async (request: FastifyRequest, reply: FastifyReply) => {
-    const parseResult = CheckJobInput.safeParse(request.query);
-
-    if (!parseResult.success) {
-      return reply.status(400).send({
-        error: "Invalid input",
-        details: parseResult.error.issues,
-      });
-    }
-
-    const jobId = parseResult.data.jobId;
-
-    try {
-      const queue = queueService.getQueue(QUEUE_NAMES.PREDICT_PERSON);
-      const job = await queue.getJob(`predict-${jobId}`);
-
-      if (!job) {
-        return reply.status(404).send({
-          error: "Job not found",
-          message: "Job may have expired or never existed",
-        });
-      }
-
-      const state = await job.getState();
-      const progress = job.progress;
-
-      const response = {
-        jobId,
-        status: state,
-        progress: progress || 0,
-        createdAt: job.timestamp,
-        result: undefined as unknown,
-        error: undefined as string | undefined,
-      };
-
-      if (state === "completed") {
-        response.result = job.returnvalue;
-      }
-
-      if (state === "failed") {
-        response.error = job.failedReason;
-      }
-
-      return reply.status(200).send(response);
-    } catch (error) {
-      logger.error("Failed to check job status");
-      const errorMessage =
-        error instanceof Error ? error.message : "Unknown error occurred";
-      return reply.status(500).send({
-        error: "Failed to check job status",
-        message: errorMessage,
-      });
-    }
-  },
 };
 
 const CreatePersonInput = z.object({
