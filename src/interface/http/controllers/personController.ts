@@ -147,7 +147,7 @@ export const personController = {
     const jobId = crypto.randomUUID();
 
     try {
-      await queueService.enqueue(
+      const aiApiResult = await queueService.enqueueAndWait(
         QUEUE_NAMES.PREDICT_PERSON,
         `predict-${jobId}`,
         {
@@ -155,23 +155,30 @@ export const personController = {
           video,
           userId,
           jobId,
-        }
+        },
+        600000
       );
 
       logger.info(
-        `Enqueued prediction job ${jobId} - Person: ${person.id}, Video: ${video.id}`
+        `Completed prediction job ${jobId} - Person: ${person.id}, Video: ${video.id}`
       );
 
-      return reply.status(202).send({
-        message: "Video analysis started",
-        jobId,
-        status: "processing",
-        estimatedTime: "2-5 minutes",
+      return reply.status(200).send({
+        success: true,
+        data: aiApiResult,
+        person: {
+          id: person.id,
+          name: person.name,
+        },
+        video: {
+          id: video.id,
+          path: video.path,
+        },
       });
     } catch (error: any) {
-      logger.error("Failed to enqueue prediction job:", error);
+      logger.error("Failed to process prediction job:", error);
       return reply.status(500).send({
-        error: "Failed to start video analysis",
+        error: "Failed to analyze video",
         message: error.message,
       });
     }
@@ -203,11 +210,13 @@ export const personController = {
       const state = await job.getState();
       const progress = job.progress;
 
-      const response: any = {
+      const response = {
         jobId,
         status: state,
         progress: progress || 0,
         createdAt: job.timestamp,
+        result: undefined as unknown,
+        error: undefined as string | undefined,
       };
 
       if (state === "completed") {
@@ -219,11 +228,13 @@ export const personController = {
       }
 
       return reply.status(200).send(response);
-    } catch (error: any) {
-      logger.error("Failed to check job status:", error);
+    } catch (error) {
+      logger.error("Failed to check job status");
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error occurred";
       return reply.status(500).send({
         error: "Failed to check job status",
-        message: error.message,
+        message: errorMessage,
       });
     }
   },
