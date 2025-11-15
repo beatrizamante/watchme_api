@@ -94,67 +94,6 @@ export function peopleApiRoutes(fastify: FastifyInstance) {
   );
 
   fastify.get(
-    "/person/job-status",
-    {
-      schema: {
-        summary: "Check video analysis job status",
-        tags: ["People"],
-        querystring: {
-          type: "object",
-          properties: {
-            jobId: { type: "string" },
-          },
-          required: ["jobId"],
-        },
-        response: {
-          200: {
-            description: "Job status information",
-            type: "object",
-            properties: {
-              jobId: { type: "string" },
-              status: {
-                type: "string",
-                enum: ["waiting", "active", "completed", "failed", "delayed"],
-              },
-              progress: { type: "number", minimum: 0, maximum: 100 },
-              createdAt: { type: "number" },
-              result: {
-                type: "object",
-                properties: {
-                  person: { type: "object" },
-                  video: { type: "object" },
-                  matches: { type: "array" },
-                },
-              },
-              error: { type: "string" },
-            },
-            example: {
-              jobId: "123e4567-e89b-12d3-a456-426614174000",
-              status: "completed",
-              progress: 100,
-              createdAt: 1698840000000,
-              result: {
-                person: { id: 1, name: "John Doe" },
-                video: { id: 2, path: "/uploads/video.mp4" },
-                matches: [],
-              },
-            },
-          },
-          404: {
-            description: "Job not found",
-            type: "object",
-            properties: {
-              error: { type: "string" },
-              message: { type: "string" },
-            },
-          },
-        },
-      },
-    },
-    personController.checkJobStatus
-  );
-
-  fastify.get(
     "/person/find",
     {
       schema: {
@@ -169,21 +108,64 @@ export function peopleApiRoutes(fastify: FastifyInstance) {
           required: ["id", "videoId"],
         },
         response: {
-          202: {
-            description:
-              "Video analysis started - returns job ID for status checking",
+          200: {
+            description: "Video analysis started with chosen person",
             type: "object",
             properties: {
-              message: { type: "string" },
-              jobId: { type: "string", format: "uuid" },
-              status: { type: "string" },
-              estimatedTime: { type: "string" },
+              person: {
+                type: "object",
+                id: { type: "integer" },
+                name: { type: "string" },
+              },
+              video: {
+                type: "object",
+                id: { type: "integer" },
+                path: { type: "string" },
+              },
+              userId: { type: "integer" },
+              matches: {
+                type: "array",
+                match: {
+                  type: "object",
+                  bbox: {
+                    x: { type: "float" },
+                    y: { type: "float" },
+                    w: { type: "float" },
+                    h: { type: "float" },
+                  },
+                  distance: { type: "float" },
+                  confidence: { type: "float" },
+                  frame_number: { type: "integer" },
+                  timestamp: { type: "string" },
+                  time_formatted: { type: "string" },
+                },
+              },
             },
             example: {
-              message: "Video analysis started",
-              jobId: "123e4567-e89b-12d3-a456-426614174000",
-              status: "processing",
-              estimatedTime: "2-5 minutes",
+              person: {
+                id: 1,
+                name: "Roni Fabricio",
+              },
+              video: {
+                id: 1,
+                path: "path/to/video",
+              },
+              userId: 2,
+              matches: [
+                {
+                  bbox: {
+                    x: 2.4,
+                    y: 1.85,
+                    w: 3,
+                    h: -1.2,
+                  },
+                  distance: 0.56,
+                  confidence: 0.28,
+                  frame_number: 350,
+                  timestamp: "02:56",
+                  time_formatted: "rmt",
+                },
+              ],
             },
           },
         },
