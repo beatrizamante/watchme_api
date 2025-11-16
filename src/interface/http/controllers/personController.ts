@@ -8,12 +8,12 @@ import {
   ExternalServiceError,
   InvalidPersonError,
 } from "../../../domain/applicationErrors.ts";
+
 import { fileSizePolicy } from "../../../policies/fileSizePolicy.ts";
+import { QUEUE_NAMES } from "../../../shared/queues.ts";
 import { aiApiClient } from "../_lib/client.ts";
 import { extractFileData } from "../_lib/fileDataHandler.ts";
 import { createRequestScopedContainer } from "../_lib/index.ts";
-import { queueService } from "../../../infrastructure/backgroundJobs/queueService.ts";
-import { QUEUE_NAMES } from "../../../shared/queues.ts";
 
 export const personController = {
   create: async (request: FastifyRequest, reply: FastifyReply) => {
@@ -127,6 +127,7 @@ export const personController = {
     // biome-ignore lint/style/noNonNullAssertion: "The user is always being checked through an addHook at the request level"
     const userId = request.userId!;
     const parseResult = FindPersonInVideo.safeParse(request.query);
+    const { queueService } = createRequestScopedContainer();
 
     if (!parseResult.success) {
       return reply.status(400).send({
@@ -145,85 +146,33 @@ export const personController = {
     }
 
     const jobId = crypto.randomUUID();
+    const uniqueJobName = `predict-${person.id}-${video.id}-${jobId}`;
 
     try {
-      await queueService.enqueue(
+      const aiApiResult = await queueService.enqueueAndWait(
         QUEUE_NAMES.PREDICT_PERSON,
-        `predict-${jobId}`,
+        uniqueJobName,
         {
           person,
           video,
           userId,
           jobId,
-        }
+        },
+        300000
       );
 
       logger.info(
-        `Enqueued prediction job ${jobId} - Person: ${person.id}, Video: ${video.id}`
+        `Completed prediction job ${jobId} - Person: ${person.id}, Video: ${video.id}`
       );
 
-      return reply.status(202).send({
-        message: "Video analysis started",
-        jobId,
-        status: "processing",
-        estimatedTime: "2-5 minutes",
-      });
-    } catch (error: any) {
-      logger.error("Failed to enqueue prediction job:", error);
+      return reply.status(200).send(aiApiResult);
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error occurred";
+      logger.error(`Failed to process prediction job: ${errorMessage}`);
       return reply.status(500).send({
-        error: "Failed to start video analysis",
-        message: error.message,
-      });
-    }
-  },
-
-  checkJobStatus: async (request: FastifyRequest, reply: FastifyReply) => {
-    const parseResult = CheckJobInput.safeParse(request.query);
-
-    if (!parseResult.success) {
-      return reply.status(400).send({
-        error: "Invalid input",
-        details: parseResult.error.issues,
-      });
-    }
-
-    const jobId = parseResult.data.jobId;
-
-    try {
-      const queue = queueService.getQueue(QUEUE_NAMES.PREDICT_PERSON);
-      const job = await queue.getJob(`predict-${jobId}`);
-
-      if (!job) {
-        return reply.status(404).send({
-          error: "Job not found",
-          message: "Job may have expired or never existed",
-        });
-      }
-
-      const state = await job.getState();
-      const progress = job.progress;
-
-      const response: any = {
-        jobId,
-        status: state,
-        progress: progress || 0,
-        createdAt: job.timestamp,
-      };
-
-      if (state === "completed") {
-        response.result = job.returnvalue;
-      }
-
-      if (state === "failed") {
-        response.error = job.failedReason;
-      }
-
-      return reply.status(200).send(response);
-    } catch (error: any) {
-      logger.error("Failed to check job status:", error);
-      return reply.status(500).send({
-        error: "Failed to check job status",
-        message: error.message,
+        error: "Failed to analyze video",
+        message: errorMessage,
       });
     }
   },
@@ -244,8 +193,4 @@ const FindPerson = z.object({
 const FindPersonInVideo = z.object({
   id: z.number().nonnegative().nonoptional(),
   videoId: z.number().nonnegative().nonoptional(),
-});
-
-const CheckJobInput = z.object({
-  jobId: z.string().uuid(),
 });

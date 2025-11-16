@@ -1,7 +1,7 @@
 import { Job, Queue, QueueEvents, Worker } from "bullmq";
-import { config } from "../../config.ts";
+import { config } from "../../../config.ts";
 
-class BullQueueServicee {
+export class BullQueueService {
   private queues = new Map<string, Queue>();
   private workers = new Map<string, Worker>();
   private queueEvents = new Map<string, QueueEvents>();
@@ -14,6 +14,9 @@ class BullQueueServicee {
     const queue = this.getQueue(queueName);
     await queue.add(jobName, jobData, {
       jobId: jobName,
+      attempts: 1,
+      removeOnComplete: 10,
+      removeOnFail: 5,
     });
   }
 
@@ -21,11 +24,14 @@ class BullQueueServicee {
     queueName: string,
     jobName: string,
     jobData: T,
-    timeout: number = 30000000
+    timeout: number = 300000
   ): Promise<R> {
     const queue = this.getQueue(queueName);
     const job = await queue.add(jobName, jobData, {
       jobId: jobName,
+      attempts: 1,
+      removeOnComplete: 10,
+      removeOnFail: 5,
     });
 
     const queueEvents = this.getQueueEvents(queueName);
@@ -62,10 +68,15 @@ class BullQueueServicee {
 
   addWorker(queueName: string, handler: (job: Job) => Promise<unknown>): void {
     if (this.workers.has(queueName)) {
+      console.log(`Worker for queue ${queueName} already exists, skipping...`);
       return;
     }
 
-    const worker = new Worker(queueName, handler, { connection: config.redis });
+    console.log(`Creating worker for queue: ${queueName}`);
+    const worker = new Worker(queueName, handler, {
+      connection: config.redis,
+      concurrency: 1,
+    });
 
     worker.on("completed", (job) => {
       console.log(`Job ${job.id} completed successfully`);
@@ -87,4 +98,4 @@ class BullQueueServicee {
   }
 }
 
-export const queueService = new BullQueueServicee();
+export const queueService = new BullQueueService();

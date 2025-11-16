@@ -33,7 +33,9 @@ export const findVideo = async (id: number, user_id: number) => {
 
     const video = (await VideoModel.query()
       .join("users", "videos.user_id", "users.id")
-      .findOne({ id, user_id })
+      .where("videos.id", id)
+      .where("videos.user_id", user_id)
+      .first()
       .select("videos.*", "users.username")) as unknown as VideoWithUser;
 
     if (!video)

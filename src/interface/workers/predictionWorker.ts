@@ -1,10 +1,13 @@
+/** biome-ignore-all lint/complexity/noStaticOnlyClass: TODO - alter static class */
 import { Job } from "bullmq";
-import { findPersonHandler } from "../../application/use-cases/person/findPersonHandler.ts";
 import { logger } from "../../_lib/logger.ts";
+import { findPersonHandler } from "../../application/use-cases/person/findPersonHandler.ts";
+import { Person } from "../../domain/person/Person.ts";
+import { Video } from "../../domain/video/Video.ts";
 
-type PredictionJobData = {
-  person: any;
-  video: any;
+export type PredictionJobData = {
+  person: Person;
+  video: Video;
   userId: number;
   jobId: string;
 };
@@ -26,14 +29,25 @@ class PredictionWorker {
 
       logger.info(`Prediction completed for job ${jobId} and user ${userId}`);
 
+      // Convert file system path to URL path for frontend
+      const videoUrlPath = video.path
+        .replace(/\\/g, "/")
+        .replace(/^.*\/uploads\//, "/uploads/");
+
       return {
-        person,
-        video,
+        person: {
+          id: person.id,
+          name: person.name,
+        },
+        video: {
+          ...video,
+          path: videoUrlPath, // Return URL path instead of file system path
+        },
         userId,
-        matches: result.matches || [],
+        matches: result?.matches || [],
       };
-    } catch (error: any) {
-      logger.error(`Prediction failed for job ${jobId}:`, error);
+    } catch (error: unknown) {
+      logger.error(`Prediction failed for job ${jobId}: ${error}`);
       throw error;
     }
   }

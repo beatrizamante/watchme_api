@@ -94,69 +94,6 @@ export function peopleApiRoutes(fastify: FastifyInstance) {
   );
 
   fastify.get(
-    "/person/job-status",
-    {
-      schema: {
-        summary: "Check video analysis job status",
-        tags: ["People"],
-        querystring: {
-          type: "object",
-          properties: {
-            jobId: { type: "string", format: "uuid" },
-          },
-          required: ["jobId"],
-        },
-        response: {
-          200: {
-            description: "Job status information",
-            type: "object",
-            properties: {
-              jobId: { type: "string" },
-              status: {
-                type: "string",
-                enum: ["waiting", "active", "completed", "failed", "delayed"],
-              },
-              progress: { type: "number", minimum: 0, maximum: 100 },
-              createdAt: { type: "number" },
-              result: {
-                type: "object",
-                properties: {
-                  person: { type: "object" },
-                  video: { type: "object" },
-                  matches: { type: "array" },
-                  total_matches: { type: "number" },
-                },
-              },
-              error: { type: "string" },
-            },
-            example: {
-              jobId: "123e4567-e89b-12d3-a456-426614174000",
-              status: "completed",
-              progress: 100,
-              createdAt: 1698840000000,
-              result: {
-                person: { id: 1, name: "John Doe" },
-                video: { id: 2, path: "/uploads/video.mp4" },
-                matches: [],
-                total_matches: 0,
-              },
-            },
-          },
-          404: {
-            description: "Job not found",
-            type: "object",
-            properties: {
-              error: { type: "string" },
-              message: { type: "string" },
-            },
-          },
-        },
-      },
-    },
-    personController.checkJobStatus
-  );
-
-  fastify.get(
     "/person/find",
     {
       schema: {
@@ -171,21 +108,83 @@ export function peopleApiRoutes(fastify: FastifyInstance) {
           required: ["id", "videoId"],
         },
         response: {
-          202: {
-            description:
-              "Video analysis started - returns job ID for status checking",
+          200: {
+            description: "Video analysis started with chosen person",
             type: "object",
             properties: {
-              message: { type: "string" },
-              jobId: { type: "string", format: "uuid" },
-              status: { type: "string" },
-              estimatedTime: { type: "string" },
+              person: {
+                type: "object",
+                properties: {
+                  id: { type: "number" },
+                  name: { type: "string" },
+                },
+              },
+              video: {
+                type: "object",
+                properties: {
+                  id: { type: "number" },
+                  path: { type: "string" },
+                },
+              },
+              userId: { type: "number" },
+              matches: {
+                type: "array",
+                items: {
+                  type: "object",
+                  properties: {
+                    bbox: {
+                      type: "array",
+                      items: { type: "number" },
+                      minItems: 4,
+                      maxItems: 4,
+                      description: "Bounding box as [x, y, x, y]",
+                    },
+                    bbox_format: { type: "string" },
+                    coordinate_info: {
+                      type: "object",
+                      properties: {
+                        format: { type: "string" },
+                        origin: { type: "string" },
+                        image_width: { type: "number" },
+                        image_height: { type: "number" },
+                        yolo_processed_size: { type: "string" },
+                      },
+                    },
+                    distance: { type: "number" },
+                    frame_number: { type: "number" },
+                    timestamp: { type: "number" },
+                    time_formatted: { type: "string" },
+                  },
+                },
+              },
             },
             example: {
-              message: "Video analysis started",
-              jobId: "123e4567-e89b-12d3-a456-426614174000",
-              status: "processing",
-              estimatedTime: "2-5 minutes",
+              person: {
+                id: 1,
+                name: "Roni Fabricio",
+              },
+              video: {
+                id: 1,
+                path: "path/to/video",
+              },
+              userId: 2,
+              matches: [
+                {
+                  bbox: [100.5, 200.8, 150.0, 300.2],
+                  bbox_format: "xyxy",
+                  coordinate_info: {
+                    format: "xyxy",
+                    origin: "top_left",
+                    image_width: 1920,
+                    image_height: 1080,
+                    yolo_processed_size: "1920x1080",
+                  },
+                  distance: 0.25,
+                  frame_number: 350,
+                  timestamp: 176.5,
+                  time_formatted: "00:02:56",
+                },
+              ],
             },
           },
         },
