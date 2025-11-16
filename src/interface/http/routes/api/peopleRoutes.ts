@@ -137,7 +137,18 @@ export function peopleApiRoutes(fastify: FastifyInstance) {
                       items: { type: "number" },
                       minItems: 4,
                       maxItems: 4,
-                      description: "Bounding box as [x, y, w, h]",
+                      description: "Bounding box as [x, y, x, y]",
+                    },
+                    bbox_format: { type: "string" },
+                    coordinate_info: {
+                      type: "object",
+                      properties: {
+                        format: { type: "string" },
+                        origin: { type: "string" },
+                        image_width: { type: "number" },
+                        image_height: { type: "number" },
+                        yolo_processed_size: { type: "string" },
+                      },
                     },
                     distance: { type: "number" },
                     frame_number: { type: "number" },
@@ -160,6 +171,14 @@ export function peopleApiRoutes(fastify: FastifyInstance) {
               matches: [
                 {
                   bbox: [100.5, 200.8, 150.0, 300.2],
+                  bbox_format: "xyxy",
+                  coordinate_info: {
+                    format: "xyxy",
+                    origin: "top_left",
+                    image_width: 1920,
+                    image_height: 1080,
+                    yolo_processed_size: "1920x1080",
+                  },
                   distance: 0.25,
                   frame_number: 350,
                   timestamp: 176.5,

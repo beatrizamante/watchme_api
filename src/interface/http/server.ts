@@ -1,10 +1,12 @@
 import fastifyCookie from "@fastify/cookie";
 import cors from "@fastify/cors";
 import multipart from "@fastify/multipart";
+import fastifyStatic from "@fastify/static";
 import swagger from "@fastify/swagger";
 import swaggerUi from "@fastify/swagger-ui";
 import websocket from "@fastify/websocket";
 import Fastify from "fastify";
+import path from "path";
 
 import { config } from "../../config.ts";
 import { errorPlugin } from "./error/errorHandler.ts";
@@ -34,6 +36,18 @@ const makeServer = async () => {
       fileSize: 100 * 1024 * 1024,
     },
   });
+
+  server.register(fastifyStatic, {
+    root: path.join(process.cwd(), "uploads"),
+    prefix: "/uploads/",
+    setHeaders: (res, _path) => {
+      res.setHeader("Access-Control-Allow-Origin", "*");
+      res.setHeader("Access-Control-Allow-Methods", "GET");
+      res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+      res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
+    },
+  });
+
   server.register(errorPlugin);
   server.register(websocketRoutes);
 

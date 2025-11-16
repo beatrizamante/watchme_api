@@ -14,6 +14,9 @@ export class BullQueueService {
     const queue = this.getQueue(queueName);
     await queue.add(jobName, jobData, {
       jobId: jobName,
+      attempts: 1,
+      removeOnComplete: 10,
+      removeOnFail: 5,
     });
   }
 
@@ -26,6 +29,9 @@ export class BullQueueService {
     const queue = this.getQueue(queueName);
     const job = await queue.add(jobName, jobData, {
       jobId: jobName,
+      attempts: 1,
+      removeOnComplete: 10,
+      removeOnFail: 5,
     });
 
     const queueEvents = this.getQueueEvents(queueName);
@@ -62,10 +68,15 @@ export class BullQueueService {
 
   addWorker(queueName: string, handler: (job: Job) => Promise<unknown>): void {
     if (this.workers.has(queueName)) {
+      console.log(`Worker for queue ${queueName} already exists, skipping...`);
       return;
     }
 
-    const worker = new Worker(queueName, handler, { connection: config.redis });
+    console.log(`Creating worker for queue: ${queueName}`);
+    const worker = new Worker(queueName, handler, {
+      connection: config.redis,
+      concurrency: 1,
+    });
 
     worker.on("completed", (job) => {
       console.log(`Job ${job.id} completed successfully`);

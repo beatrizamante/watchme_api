@@ -146,11 +146,12 @@ export const personController = {
     }
 
     const jobId = crypto.randomUUID();
+    const uniqueJobName = `predict-${person.id}-${video.id}-${jobId}`;
 
     try {
       const aiApiResult = await queueService.enqueueAndWait(
         QUEUE_NAMES.PREDICT_PERSON,
-        `predict-${jobId}`,
+        uniqueJobName,
         {
           person,
           video,
