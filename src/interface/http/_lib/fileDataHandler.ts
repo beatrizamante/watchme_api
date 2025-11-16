@@ -23,6 +23,7 @@ export const extractFileData = async (
   }
 
   if (contentType.includes("application/json")) {
+    // biome-ignore lint/suspicious/noExplicitAny: "In this case, it can really be any"
     const body = request.body as any;
     if (!body.fileData) {
       throw new Error("fileData field is required for base64 uploads");
@@ -75,7 +76,7 @@ export const extractFileData = async (
 
       return { file, originalFilename, bodyData };
     } catch (error) {
-      throw new Error("Invalid base64 data");
+      throw new Error(`Invalid base64 data: ${error}`);
     }
   }
 

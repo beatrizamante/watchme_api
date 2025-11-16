@@ -4,10 +4,7 @@ import { findUser } from "../../../application/queries/user/findUser.ts";
 import { findUsers } from "../../../application/queries/user/findUsers.ts";
 import { User } from "../../../domain/user/User.ts";
 import { Roles } from "../../../shared/roles.ts";
-import { fileSizePolicy } from "../../../policies/fileSizePolicy.ts";
-import { imagePolicy } from "../../../policies/imagePolicy.ts";
 import { createRequestScopedContainer } from "../_lib/index.ts";
-import { extractFileData } from "../_lib/fileDataHandler.ts";
 
 type CreateUserDTO = {
   id?: number;
