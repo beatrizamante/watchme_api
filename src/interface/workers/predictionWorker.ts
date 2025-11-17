@@ -29,7 +29,6 @@ class PredictionWorker {
 
       logger.info(`Prediction completed for job ${jobId} and user ${userId}`);
 
-      // Convert file system path to URL path for frontend
       const videoUrlPath = video.path
         .replace(/\\/g, "/")
         .replace(/^.*\/uploads\//, "/uploads/");
@@ -41,7 +40,7 @@ class PredictionWorker {
         },
         video: {
           ...video,
-          path: videoUrlPath, // Return URL path instead of file system path
+          path: videoUrlPath, 
         },
         userId,
         matches: result?.matches || [],
