@@ -21,7 +21,6 @@ export const handleConnection = async ({
   const sessionId = crypto.randomUUID();
 
   try {
-    // Enforce single connection per user
     const existingConnection = Array.from(activeConnections.values()).find(
       (conn) => conn.userId === userId
     );
