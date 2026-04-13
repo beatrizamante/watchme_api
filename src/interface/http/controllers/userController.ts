@@ -1,7 +1,7 @@
 import { FastifyReply, FastifyRequest } from "fastify";
 import z from "zod/v4";
-import { findUser } from "../../../application/queries/user/findUser.ts";
-import { findUsers } from "../../../application/queries/user/findUsers.ts";
+import { findUser } from "../../../infrastructure/database/queries/user/findUser.ts";
+import { findUsers } from "../../../infrastructure/database/queries/user/findUsers.ts";
 import { User } from "../../../domain/user/User.ts";
 import { Roles } from "../../../shared/roles.ts";
 import { createRequestScopedContainer } from "../_lib/index.ts";

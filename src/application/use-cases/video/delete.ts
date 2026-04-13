@@ -2,7 +2,7 @@ import { InvalidVideoError } from "../../../domain/applicationErrors.ts";
 import { VideoInterface } from "../../../domain/video/VideoRepository.ts";
 import { VideoModel } from "../../../infrastructure/database/models/VideoModel.ts";
 import { managePath } from "../../../infrastructure/systemfile/managePath.ts";
-import { findVideo } from "../../queries/video/findVideo.ts";
+import { findVideo } from "../../../infrastructure/database/queries/video/findVideo.ts";
 
 type Dependencies = {
   videoRepository: VideoInterface;

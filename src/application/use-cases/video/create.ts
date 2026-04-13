@@ -5,11 +5,13 @@ import {
 import { Video } from "../../../domain/video/Video.ts";
 import { VideoInterface } from "../../../domain/video/VideoRepository.ts";
 import { VideoModel } from "../../../infrastructure/database/models/VideoModel.ts";
+import { UserRepository } from "../../../infrastructure/database/repositories/UserRepository.ts";
 import { managePath } from "../../../infrastructure/systemfile/managePath.ts";
 import { VideoSerializer } from "../../../interface/serializer/serializeVideo.ts";
 
 type Dependencies = {
   videoRepository: VideoInterface;
+  userRepository: UserRepository;
 };
 
 type CreateVideoParams = {
@@ -19,7 +21,7 @@ type CreateVideoParams = {
 };
 
 export const makeCreateVideo =
-  ({ videoRepository }: Dependencies) =>
+  ({ videoRepository, userRepository }: Dependencies) =>
   async ({ video, userId, originalFilename }: CreateVideoParams) => {
     const trx = await VideoModel.startTransaction();
 
@@ -28,7 +30,7 @@ export const makeCreateVideo =
       const validPath = await managePath.save(
         video,
         fileName,
-        originalFilename
+        originalFilename,
       );
 
       if (!validPath)
@@ -43,7 +45,15 @@ export const makeCreateVideo =
 
       await trx.commit();
 
-      return VideoSerializer.serialize(createdVideo);
+      const user = await userRepository.findById(userId);
+
+      if (!user)
+        throw new InvalidVideoError({ message: "Video needs attached user" });
+
+      return VideoSerializer.serialize({
+        ...createdVideo,
+        username: user.username,
+      });
     } catch (error) {
       await trx.rollback();
 

@@ -1,7 +1,7 @@
 import { FastifyReply, FastifyRequest } from "fastify";
 import z from "zod/v4";
-import { findVideo } from "../../../application/queries/video/findVideo.ts";
-import { findVideos } from "../../../application/queries/video/findVideos.ts";
+import { findVideo } from "../../../infrastructure/database/queries/video/findVideo.ts";
+import { findVideos } from "../../../infrastructure/database/queries/video/findVideos.ts";
 import { InvalidVideoError } from "../../../domain/applicationErrors.ts";
 import { fileSizePolicy } from "../../../policies/fileSizePolicy.ts";
 import { videoPolicy } from "../../../policies/videoPolicy.ts";
@@ -15,9 +15,8 @@ export const videoController = {
       // biome-ignore lint/style/noNonNullAssertion: "The user is always being checked through an addHook at the request level"
       const userId = request.userId!;
       const { createVideo } = createRequestScopedContainer();
-      const { file, originalFilename, bodyData } = await extractFileData(
-        request
-      );
+      const { file, originalFilename, bodyData } =
+        await extractFileData(request);
 
       logger.debug({ bodyData, originalFilename }, "Video data received");
 

@@ -1,5 +1,5 @@
 import { PersonInterface } from "../../../domain/person/PersonRepository.ts";
-import { findPerson } from "../../queries/person/findPerson.ts";
+import { findPerson } from "../../../infrastructure/database/queries/person/findPerson.ts";
 
 type Dependencies = {
   personRepository: PersonInterface;

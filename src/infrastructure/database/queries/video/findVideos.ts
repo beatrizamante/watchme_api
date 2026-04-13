@@ -1,8 +1,8 @@
-import { InvalidUserError } from "../../../domain/applicationErrors.ts";
-import { UserModel } from "../../../infrastructure/database/models/UserModel.ts";
-import { VideoModel } from "../../../infrastructure/database/models/VideoModel.ts";
-import { VideoWithUser } from "./../../../interface/serializer/serializeVideo.ts";
-import { VideoSerializer } from "../../../interface/serializer/serializeVideo.ts";
+import { InvalidUserError } from "../../../../domain/applicationErrors.ts";
+import { UserModel } from "../../models/UserModel.ts";
+import { VideoModel } from "../../models/VideoModel.ts";
+import { VideoWithUser } from "../../../../interface/serializer/serializeVideo.ts";
+import { VideoSerializer } from "../../../../interface/serializer/serializeVideo.ts";
 
 export const findVideos = async (user_id: number) => {
   const user = await UserModel.query().findById(user_id);

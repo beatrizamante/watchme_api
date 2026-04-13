@@ -1,5 +1,5 @@
 import WebSocket from "ws";
-import { findPerson } from "../../application/queries/person/findPerson.ts";
+import { findPerson } from "../../infrastructure/database/queries/person/findPerson.ts";
 import { ActiveConnection } from "../../types/activeConnection.ts";
 import { cleanUp } from "./cleanUp.ts";
 import { connectToPythonService } from "./createPythonService.ts";
@@ -23,7 +23,7 @@ export const handleConnection = async ({
   try {
     // Enforce single connection per user
     const existingConnection = Array.from(activeConnections.values()).find(
-      (conn) => conn.userId === userId
+      (conn) => conn.userId === userId,
     );
 
     if (existingConnection) {
@@ -32,7 +32,7 @@ export const handleConnection = async ({
         JSON.stringify({
           type: "replaced",
           message: "Connection replaced by new session",
-        })
+        }),
       );
       cleanUp({ sessionId: existingConnection.sessionId, activeConnections });
     }
@@ -44,7 +44,7 @@ export const handleConnection = async ({
         JSON.stringify({
           type: "error",
           message: "Person not found",
-        })
+        }),
       );
       socket.close();
       return;
@@ -84,7 +84,7 @@ export const handleConnection = async ({
         type: "connected",
         sessionId,
         message: "Connected to video tracking service",
-      })
+      }),
     );
   } catch (error) {
     console.error("Error handling WebSocket connection:", error);
@@ -92,7 +92,7 @@ export const handleConnection = async ({
       JSON.stringify({
         type: "error",
         message: "Failed to initialize connection",
-      })
+      }),
     );
     socket.close();
   }

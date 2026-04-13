@@ -1,6 +1,6 @@
 import { DatabaseError } from "../../../domain/applicationErrors.ts";
-import { PersonInterface } from "../../../domain/PersonRepository.ts";
 import { Person } from "../../../domain/person/Person.ts";
+import { PersonInterface } from "../../../domain/person/PersonRepository.ts";
 import { PersonModel } from "../models/PersonModel.ts";
 
 export class PersonRepository implements PersonInterface {
